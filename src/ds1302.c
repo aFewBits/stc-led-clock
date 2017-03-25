@@ -58,15 +58,15 @@ void wbyte_3w(uint8_t W_Byte)
 {
     uint8_t i;
 
-	for(i = 0; i < 8; ++i){
-	    IO = 0;
-		if(W_Byte & 0x01){
-			IO = 1;	            // set port pin high to read data
-		}
-		SCLK = 0;
+    for(i = 0; i < 8; ++i){
+        IO = 0;
+        if(W_Byte & 0x01){
+            IO = 1;	            // set port pin high to read data
+        }
+        SCLK = 0;
         wait500();
-		SCLK = 1;
-		W_Byte >>= 1;
+        SCLK = 1;
+        W_Byte >>= 1;
     }
 }
 
@@ -78,20 +78,20 @@ uint8_t	rbyte_3w()
     uint8_t R_Byte;
     uint8_t TmpByte;
 
-	R_Byte = 0x00;
-	IO = 1;
-	for(i = 0; i < 8; i++){
-		SCLK = 1;
+    R_Byte = 0x00;
+    IO = 1;
+    for(i = 0; i < 8; i++){
+        SCLK = 1;
         wait375();  //DELAY2;
-		SCLK = 0;
+        SCLK = 0;
         // must delay before reading pin!!
         __asm__ ("\tnop\n\tnop\n\tnop\n");
-		TmpByte = (uint8_t)IO;
-		TmpByte <<= 7;
-		R_Byte >>= 1;
-		R_Byte |= TmpByte;
-	}
-	return R_Byte;
+        TmpByte = (uint8_t)IO;
+        TmpByte <<= 7;
+        R_Byte >>= 1;
+        R_Byte |= TmpByte;
+    }
+    return R_Byte;
 }
 
 // Burst mode clock data registers from DS1302 and install in struct
@@ -100,8 +100,8 @@ uint8_t	rbyte_3w()
 
 void getClock()
 {
-	reset_3w();
-	wbyte_3w(kClockBurstRead);
+    reset_3w();
+    wbyte_3w(kClockBurstRead);
     clockRam.sec  = rbyte_3w();
     clockRam.min  = rbyte_3w();
     clockRam.hr   = rbyte_3w();
@@ -109,15 +109,15 @@ void getClock()
     clockRam.mon  = rbyte_3w();
     clockRam.day  = rbyte_3w();
     clockRam.yr   = rbyte_3w();
-	reset_3w();
+    reset_3w();
 }
 
 // Burst mode ram struct to DS1302 clock data registers
 
 void putClock()
 {
-	reset_3w();
-	wbyte_3w(kClockBurstWrite);
+    reset_3w();
+    wbyte_3w(kClockBurstWrite);
     wbyte_3w(clockRam.sec);
     wbyte_3w(clockRam.min);
     wbyte_3w(clockRam.hr);
@@ -136,15 +136,15 @@ void getConfigRam()
 {
     uint8_t i, *p;
 
-	reset_3w();
-	wbyte_3w(kRamBurstRead);
+    reset_3w();
+    wbyte_3w(kRamBurstRead);
     p = &clockRam.check0;
-	for (i = 0; i < configSize; i++){
-		*p++ = rbyte_3w();
-	}
-	reset_3w();
-	// set all 8 bits in one whack
-	configBitReg = clockRam.statusBits;
+    for (i = 0; i < configSize; i++){
+        *p++ = rbyte_3w();
+    }
+    reset_3w();
+    // set all 8 bits in one whack
+    configBitReg = clockRam.statusBits;
 }
 
 // Burst mode write user ram back to the DS1302 ram
@@ -155,14 +155,14 @@ void putConfigRam()
     uint8_t	i, *p;
 
     // push the user bits back into ram memory
-	clockRam.statusBits = configBitReg;
+    clockRam.statusBits = configBitReg;
     p = &clockRam.check0;
-	reset_3w();
-	wbyte_3w(kRamBurstWrite);
-	for (i = 0; i < configSize; ++i){
-		wbyte_3w(*p++);
-	}
-	reset_3w();
+    reset_3w();
+    wbyte_3w(kRamBurstWrite);
+    for (i = 0; i < configSize; ++i){
+        wbyte_3w(*p++);
+    }
+    reset_3w();
 }
 
 // --- Power up initization of the DS1302 RTC chip
@@ -172,17 +172,17 @@ void initRtc()
 {
     uint8_t	t;
 
-	reset_3w();
-	wbyte_3w(0x8E);	    // control register
-	wbyte_3w(0x00);		// disable write protect
-	wbyte_3w(0x90);	    // trickle charger register
-	wbyte_3w(0x00);	    // everything off!!
+    reset_3w();
+    wbyte_3w(0x8E);	    // control register
+    wbyte_3w(0x00);		// disable write protect
+    wbyte_3w(0x90);	    // trickle charger register
+    wbyte_3w(0x00);	    // everything off!!
     wbyte_3w(0x81);
     t = rbyte_3w();
     t &= 0x7f;          // turn off clock halt
-	wbyte_3w(0x80);	    // and write it back less CH bit
-	wbyte_3w(t);
-	reset_3w();
+    wbyte_3w(0x80);	    // and write it back less CH bit
+    wbyte_3w(t);
+    reset_3w();
     getConfigRam();
     t  = clockRam.check0;
     t ^= clockRam.check1;
@@ -233,9 +233,9 @@ void initColdStart()
     uint8_t	i, *p;
 
     p = &clockRam.sec;
-	for (i = 0; i < clockSize+configSize; i++){
-		*p++ = iniTable[i];
-	}
+    for (i = 0; i < clockSize+configSize; i++){
+        *p++ = iniTable[i];
+    }
     putClock();
     configBitReg = clockRam.statusBits;
     putConfigRam();

@@ -605,8 +605,6 @@ void setMsgOff()
     segs[M01] = 0x8E; // F
 }
 
-
-
 // Setup hour display if 12 hour format.
 // Set the module level global var "h" used thoughout the state machine
 

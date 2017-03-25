@@ -6,7 +6,7 @@
 #define FALSE   0
 
 #define FOSC 22118400L              // clock speed in mhz
-#define T0TICKS 20000				// Timer 0 tick rate in hz (50us)
+#define T0TICKS 20000               // Timer 0 tick rate in hz (50us)
 #define BAUD 115200                 // debug serial baud rate
 #define RxD2 P3_6                   // UART only in 15W408AS
 #define TxD2 P3_7                   // use for debugging

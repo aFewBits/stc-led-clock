@@ -1,5 +1,5 @@
 //
-// STC15F204EA LED Clock
+// STC15W408AS LED Clock
 //
 #include <stdint.h>
 #include "stc15.h"
