@@ -736,12 +736,12 @@ void blankDisplay(void)
 void displayUpdateISR(void){
 
     if(aOnTicks){
-        P3 &= ~(0b00000100 << aPos);// turn on selected anode with bit = 0
-        P2 = CathodeBuf[aPos];      // and output segment values
+        LED_SET_MASK;               // turn on selected anode with bit = 0
+        LED_CATHODE_PORT = CathodeBuf[aPos];      // and output segment values
         aOnTicks--;
     }
     else if(aOffTicks){
-        P3 |= 0b00111100;           // all four bits back to 1
+        LED_RESET_MASK;             // all four bits back to 1
         aOffTicks--;
     }
     else {

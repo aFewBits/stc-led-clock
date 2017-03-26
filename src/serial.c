@@ -19,7 +19,7 @@ void initSerial()
     P_SW1 = ACC;
     SCON  = 0x40;                	// xmit only & 8 bit variable baud rate uart
     T2H   = (65536-(FOSC/BAUD/4) >> 8);		// baud rate high
-    T2L   = (65536-(FOSC/BAUD/4) && 0xFF);	// baud rate low
+    T2L   = (65536-(FOSC/BAUD/4) & 0xFF);	// baud rate low
     ACC = AUXR;
     ACC |= 0x15;                    // T2 is 1T mode, start timer 2, T2 = uart clock
     AUXR = ACC;                     // Select Timer 2 as the baud rate generator for serial port 1

@@ -26,10 +26,6 @@ __bit __at 0x7D Select_FC;  // select degrees F or C
 __bit __at 0x7E Select_MD;  // select month:day display format MM:DD or DD:MM
 __bit __at 0x7F Select_12;  // = 1 when 12 hr mode
 
-#define CE   P1_0
-#define IO   P1_1
-#define SCLK P1_2
-
 void wait375()
 {
     // this burns 8 clocks @24mhz = 375ns
