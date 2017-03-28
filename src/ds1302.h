@@ -73,6 +73,7 @@ void    initRtc();
 void    initColdStart();
 void    getClock();
 void    putClock();
+void    refreshTime();
 
 // Internal module use only
 void	getConfigRam();

@@ -35,6 +35,7 @@ int main()
     printf_tiny("STC15W408AS awake\n");
 #endif
 
+    SET_PORT_DRIVE;
     // set photoresistor & ntc pins to open-drain output
     P1M1 |= (1 << ADC_LDR) | (1 << ADC_TEMP);
     P1M0 |= (1 << ADC_LDR) | (1 << ADC_TEMP);
@@ -71,13 +72,14 @@ int main()
                         soundAlarm = TRUE;
                     }
         while(soundAlarm){
-            for(i = 0 ; i < 5 ; i++){
-                BZR_ON;
-                alarmDelay(33);          // 100ms
-                BZR_OFF;
-                alarmDelay(20);         //  66ms
-            }
-            alarmDelay(200);        // 600ms
+            BZR_ON;
+            alarmDelay(66);         // 200ms
+            BZR_OFF;
+            alarmDelay(33);         // 100ms
+            BZR_ON;
+            alarmDelay(66);         // 200ms
+            BZR_OFF;
+            alarmDelay(225);        // 675ms
             if (checkAndClearS1()){
                 soundAlarm = FALSE;
                 break;

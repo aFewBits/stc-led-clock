@@ -26,8 +26,8 @@ uint8_t map()
 uint8_t mapLDR(int16_t x)
 {
     in = x;
-    in_min = 63;
-    in_max =  0;
+    in_min =  MAX_BRIGHT;
+    in_max =  MIN_BRIGHT;
     out_min = bcdToDec(clockRam.brightMin);
     out_max = bcdToDec(clockRam.brightMax);
     return map();
@@ -183,23 +183,22 @@ void checkChime()
         soundChime();
 }
 
-// soundChime - Toggle the buzzer on and off at a rate slower than the alarm.
+// soundChime - Toggle the buzzer on and off at alarm rate only once.
 // The buzzer has its own native frequency when +5 volts is applied.
 // The polarity is usually low to sound buzzer so the constants
 // BZR_ON and BZR_OFF are usually inverted (ON = 0, OFF = 1)
+// This routine must consume more than 1000ms else it will refire
+// when it returns since time will still be 00:00
 
 void soundChime()
 {
-    uint8_t i;
-
-    for(i = 0; i < 3; i++){
-        BZR_ON;
-        delay3(20);     // 60 ms
-        BZR_OFF;
-        delay3(67);     // 200 ms
-    }
-    // delay until :01 past the hour so we don't fire twice
-    delay3(100);        // 300 ms
-
+    BZR_ON;
+    delay3(66);         // 200ms
+    BZR_OFF;
+    delay3(33);         // 100ms
+    BZR_ON;
+    delay3(66);         // 200ms
+    BZR_OFF;
+    delay3(250);        // 750ms for 1050ms total
 }
 

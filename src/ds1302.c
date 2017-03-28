@@ -26,19 +26,14 @@ __bit __at 0x7D Select_FC;  // select degrees F or C
 __bit __at 0x7E Select_MD;  // select month:day display format MM:DD or DD:MM
 __bit __at 0x7F Select_12;  // = 1 when 12 hr mode
 
-void wait375()
-{
-    // this burns 8 clocks @24mhz = 375ns
-    return;
-}
-
 void wait500()
 {
     // the call overhead + 4 nops = 500ns
     __asm__ ("\tnop\n\tnop\n\tnop\n");
 }
 
-// ----- reset and enable the 3-wire interface ------
+// Reset and enable the 3-wire interface
+// Exits with SCLK LOW and CE HIGH (selected)
 
 void reset_3w()
 {
@@ -48,25 +43,28 @@ void reset_3w()
     CE = 1;
 }
 
-// ------ write one byte to the device -------
+// Write one byte to the DS1302
+//
+//  Exits with SCLK HIGH, IO in last state
 
 void wbyte_3w(uint8_t W_Byte)
 {
     uint8_t i;
 
     for(i = 0; i < 8; ++i){
-        IO = 0;
-        if(W_Byte & 0x01){
-            IO = 1;	            // set port pin high to read data
-        }
+        IO = 0;                 // do not remove!
+        IO = (W_Byte & 0x01);
+        wait500();
         SCLK = 0;
         wait500();
-        SCLK = 1;
+        SCLK = 1;               // write occurs on 0->1
         W_Byte >>= 1;
     }
 }
 
-// ------- read one byte from the device --------
+// Read one byte from the DS1302
+//
+//  Exit with SCLK LOW
 
 uint8_t	rbyte_3w()
 {
@@ -75,17 +73,15 @@ uint8_t	rbyte_3w()
     uint8_t TmpByte;
 
     R_Byte = 0x00;
-    IO = 1;
     for(i = 0; i < 8; i++){
-        SCLK = 1;
-        wait375();  //DELAY2;
+        SCLK = 1;               // read occurs on 1->0
+        wait500();
         SCLK = 0;
-        // must delay before reading pin!!
-        __asm__ ("\tnop\n\tnop\n\tnop\n");
-        TmpByte = (uint8_t)IO;
+        wait500();              // wait for I/O pin to settle
+        TmpByte = (uint8_t)IO;  // get new bit
         TmpByte <<= 7;
         R_Byte >>= 1;
-        R_Byte |= TmpByte;
+        R_Byte |= TmpByte;      // save parital byte
     }
     return R_Byte;
 }
@@ -121,7 +117,24 @@ void putClock()
     wbyte_3w(clockRam.mon);
     wbyte_3w(clockRam.day);
     wbyte_3w(clockRam.yr);
-    wbyte_3w(0);
+    wbyte_3w(0);                // must write 8 bytes in burst mode
+    reset_3w();
+}
+
+// Refresh only time from RTC
+// Used before puts that didn't affect time
+
+void refreshTime()
+{
+    reset_3w();
+    wbyte_3w(0x81);             // read seconds value
+    clockRam.sec = rbyte_3w();
+    reset_3w();
+    wbyte_3w(0x83);             // minutes v
+    clockRam.min = rbyte_3w();
+    reset_3w();
+    wbyte_3w(0x85);             // and hours
+    clockRam.hr = rbyte_3w();
     reset_3w();
 }
 
@@ -173,11 +186,12 @@ void initRtc()
     wbyte_3w(0x00);		// disable write protect
     wbyte_3w(0x90);	    // trickle charger register
     wbyte_3w(0x00);	    // everything off!!
-    wbyte_3w(0x81);
+    wbyte_3w(0x81);     // read seconds value
     t = rbyte_3w();
-    t &= 0x7f;          // turn off clock halt
-    wbyte_3w(0x80);	    // and write it back less CH bit
-    wbyte_3w(t);
+    t &= 0x7f;          // mask off clock halt bit
+    wbyte_3w(0x80);	    // and write it back to seconds reg
+    wbyte_3w(t);        // less CH bit
+
     reset_3w();
     getConfigRam();
     t  = clockRam.check0;
@@ -196,6 +210,22 @@ void initRtc()
 // Declaring invalid values will usually result in just strange
 // displays - but may cause crashes since the data is not validated.
 
+#ifdef TEST_DEFAULTS
+const uint8_t iniTable[] = {
+        0x55,0x59,0xA7,                     // 07:59:55 pm
+        0x12,0x31,                          // date,month
+        0x01,                               // day of week
+        0x16,                               // year (unused)
+        0x55,0xAA,                          // checksum bytes
+        kSelect_12+kSelect_MD+kSelect_FC+ \
+        kAlarmOn+kChimeOn+kTempOn+kDowOn,   // mode bits
+        0xA8,0x00,                          // 8:00pm alarm
+        0x88,                               // 8:00am chime start
+        0xA9,                               // 9:00pm chime stop
+        0x63,0x62,                          // brightness max.min (0x63 max)
+        0x00                                // temp offset
+};
+#else
 const uint8_t iniTable[] = {
         0x55,0x59,0xA7,                     // 07:59:55 pm
         0x12,0x31,                          // date,month
@@ -206,9 +236,10 @@ const uint8_t iniTable[] = {
         0x88,0x00,                          // 8:00am alarm
         0x88,                               // 8:00am chime start
         0xA5,                               // 5:00pm chime stop
-        0x50,0x05,                          // brightness max.min (0x63 max)
+        0x50,0x01,                          // brightness max.min (0x63 max)
         0x00                                // temp offset
 };
+#endif
 
 // Sample 24 hour setup:
 //

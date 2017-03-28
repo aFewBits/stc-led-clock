@@ -7,6 +7,8 @@
 #ifdef REG8051_H
 #undef REG8051_H
 #endif
+/*  P5  */
+__sfr  __at (0xC8) P5;
 
 /*  P4  */
 __sfr  __at (0xC0) P4;

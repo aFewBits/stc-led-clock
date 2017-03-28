@@ -35,6 +35,7 @@ __bit   dp0,dp1;                // decimal points for each digit
 __bit   dp2,dp3;                // numbers match Cathode[] array index
 __bit   AM_PM;                  // used to set decimal point on/off
 __bit   readyRead;              // used to read temperature once per second
+__bit   timeChanged;            // write time to clock when set
 
 uint8_t maskOnOff;              // set to 0x7F or 0xFF to blink decimal point
 uint8_t maskDp0;                // set to 0x7F or 0xFF with dp0 (=dp on or off)
@@ -52,6 +53,44 @@ static uint8_t aPos;                // cycles through 0-3 anode positions
 static uint8_t aOnTicks;
 static uint8_t aOffTicks;
 
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// Update the LED display based on four variables.
+//
+// These are:
+//
+//      CathodeBuf[i] = 7 segment pattern to display, i = AnodePos
+//      aPos          = Current digit, 0.1.2.3 where 0 = LHS of display
+//      aOnTicks      = Number of Timer 0 ticks for the Anode to be low (active /on)
+//      aOffTicks     = Number of Timer 0 ticks for the Anode to be high (inactive/off)
+//
+// This routine is called from inside the ISR so be quick!!
+//
+
+void displayUpdateISR(void){
+
+    if(aOnTicks){
+        LED_SET_ANODES;             // turn on selected anode
+        LED_SET_CATHODES;           // and output segment values
+        aOnTicks--;
+    }
+    else if(aOffTicks){
+        LED_RESET_ANODES;           // all four bits back to 1
+        aOffTicks--;
+    }
+    else {
+        if (++aPos >= 4)            // Done with this digit so move to next
+            aPos = 0;               // and reset timers so next time in turn on new anode
+            aOnTicks = brightLevel;
+            if (aOnTicks == MAX_BRIGHT)
+               aOffTicks = 1;      // don't allow Off to goto zero!!
+            else
+               aOffTicks = MAX_BRIGHT - aOnTicks;
+        }
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // updateClock routine used by alarm. Must update the display while
 // in alarm mode, beeping and waiting for the user to reset.
 // Maybe need to add snooze too...
@@ -59,8 +98,13 @@ static uint8_t aOffTicks;
 void updateClock()
 {
     dp0 = OFF;
-    dp1 = _1hzToggle;           // toggle clock ':' to show seconds (make options?)
-    dp2 = _1hzToggle;
+#ifdef DP1_IS_COLON
+    dp1 = _1hzToggle;           // toggle clock ':'
+    dp2 = OFF;
+#else
+    dp1 = _1hzToggle;           // toggle clock ':'
+    dp2 = _1hzToggle;           // two dp's for 1" LED's
+#endif
     dp3 = AM_PM;
     getClock();
     setupHour(clockRam.hr);     // possibly convert to 12 format with AM/PM
@@ -98,7 +142,6 @@ void displayFSM()
         // break update away from switch check for alarming...
         updateClock();
         stateSwitchWithS1(scSet);
-
         if (checkAndClearS2() ){
             userTimer100 = 200;
             displayState = stClockSeconds;
@@ -125,7 +168,12 @@ void displayFSM()
         displayHours(ON);
         displayMinutes(ON);
         stateSwitchWithS1(stClock);
-        stateSwitchWithS2(stClock);
+        if (checkAndClearS2()){
+            clockRam.sec = 0;       // reset seconds on S2 press
+            putClock();             // save change
+            userTimer100 = 200;     // and refresh time to keep us here
+        }
+        // go back to clock on time out
         if ( !userTimer100 ) displayState = stClock;
         break;
 
@@ -208,8 +256,13 @@ void displayFSM()
         break;
 
     case msClockHour:
-        dp1 = ON;
-        dp2 = ON;
+        #ifdef DP1_IS_COLON
+            dp1 = ON;
+            dp2 = OFF;
+        #else
+            dp1 = ON;
+            dp2 = ON;
+        #endif
         dp3 = AM_PM;
         displayHours(getStateS2Flasher());
         displayMinutes(ON);
@@ -217,6 +270,7 @@ void displayFSM()
         if (checkAndClearS2()){
             clockRam.hr = incrementHours(clockRam.hr);
             setupHour(clockRam.hr);
+            timeChanged = TRUE;
         }
         break;
 
@@ -227,7 +281,8 @@ void displayFSM()
         if (checkAndClearS2()){
             m = incrementMinutes(m);
             clockRam.min = m;
-            }
+            timeChanged = TRUE;
+        }
         break;
 
 // msAlarm,msAlarmHour,msAlarmMinute
@@ -239,11 +294,16 @@ void displayFSM()
         break;
 
     case msAlarmHour:
+        #ifdef DP1_IS_COLON
+            dp1 = ON;
+            dp2 = OFF;
+        #else
+            dp1 = ON;
+            dp2 = ON;
+        #endif
+        dp3 = AM_PM;
         setupHour(clockRam.almHour);
         m = clockRam.almMin;
-        dp1 = ON;
-        dp2 = ON;
-        dp3 = AM_PM;
         displayHours(getStateS2Flasher());
         displayMinutes(ON);
         stateSwitchWithS1(msAlarmMinute);
@@ -311,7 +371,7 @@ void displayFSM()
         getDateVars();
         displayHours(ON);
         displayMinutes(getStateS2Flasher());
-        stateSwitchWithS1(msExit);
+        stateSwitchWithS1(msDay);
         if (checkAndClearS2())
             m = incrementDate(m,M10);
         break;
@@ -502,7 +562,10 @@ void displayFSM()
         displayMinutes(ON);
         stateSwitchWithS1(mcBrtMin);
         if (checkAndClearS2()){
-            clockRam.brightMax = incrementBrightness(h);
+            d = incrementBrightness(h);
+            if (d < clockRam.brightMin)
+                d = clockRam.brightMin;
+            clockRam.brightMax = d;
         }
         break;
 
@@ -552,9 +615,16 @@ void displayFSM()
 
     case msExit:
         blankDisplay();                 // go blank at end of cycle
+        if (!timeChanged){
+            refreshTime();              // time didn't change so refresh get current
+        }
+        else {                          //  time before writing everything back
+            clockRam.sec = 0;           // reset seconds when changing time
+            timeChanged = FALSE;
+        }
         putClock();                     // save changes
         putConfigRam();                 // from any set routine...
-        userTimer100 = 6;              // wait for ~.5 second
+        userTimer100 = 6;               // wait for ~.5 second
         while(userTimer100) ;           // just delay...
         checkAndClearS1();              // dump keybuf on the way out the door...
         displayState = stClock;         // goto clock display
@@ -595,14 +665,24 @@ void setText2A(uint8_t index)
 
 void setMsgOn()
 {
-    segs[M10] = 0X9C; // o
+#ifdef NO_DIGIT_3_FLIP
+    segs[M10] = 0XA3; // o
     segs[M01] = 0xAB; // n
+#else
+    segs[M10] = 0x9C; // o
+    segs[M01] = 0xAB; // n
+#endif
 }
 
 void setMsgOff()
 {
-    segs[M10] = 0XC0; // O
+#ifdef NO_DIGIT_3_FLIP
+    segs[M10] = 0xC0; // o
     segs[M01] = 0x8E; // F
+#else
+    segs[M10] = 0XC0; // o
+    segs[M01] = 0x8E; // F
+#endif
 }
 
 // Setup hour display if 12 hour format.
@@ -685,10 +765,17 @@ void displayTemperature()
     h = decToBcd(actualTemp + clockRam.tempOffset);
     segs[H10] = ledSegTB[(h & 0xF0) >> 4];
     segs[H01] = ledSegTB[(h & 0x0F)];
+#ifdef NO_DIGIT_3_FLIP
+    if ( Select_FC)
+        segs[M10] = 0x8E;   // F only
+    else
+        segs[M10] = 0xC6;   // C only
+#else
     if ( Select_FC)
         segs[M10] = 0x31;  // F & dp on
     else
         segs[M10] = 0x70;  // C & dp on
+#endif
     segs[M01] = 0xFF;
 }
 
@@ -719,37 +806,6 @@ void blankDisplay(void)
     CathodeBuf[1] = 0xFF;           // in all digits
     CathodeBuf[2] = 0xFF;           // to eliminate 88:88 display
     CathodeBuf[3] = 0xFF;           // at power up
-}
-
-// Update the LED display based on four variables.
-//
-// These are:
-//
-//      CathodeBuf[i] = 7 segment pattern to display, i = AnodePos
-//      aPos          = Current digit, 0.1.2.3 where 0 = LHS of display
-//      aOnTicks      = Number of Timer 0 ticks for the Anode to be low (active /on)
-//      aOffTicks     = Number of Timer 0 ticks for the Anode to be high (inactive/off)
-//
-// This routine is called from inside the ISR so be quick!!
-//
-
-void displayUpdateISR(void){
-
-    if(aOnTicks){
-        LED_SET_MASK;               // turn on selected anode with bit = 0
-        LED_CATHODE_PORT = CathodeBuf[aPos];      // and output segment values
-        aOnTicks--;
-    }
-    else if(aOffTicks){
-        LED_RESET_MASK;             // all four bits back to 1
-        aOffTicks--;
-    }
-    else {
-        if (++aPos >= 4)            // Done with this digit so move to next
-            aPos = 0;               // and reset timers so next time in turn on new anode
-            aOnTicks = brightLevel;
-            aOffTicks = 63 - aOnTicks;
-        }
 }
 
 uint8_t incrementHours(uint8_t hour)
@@ -846,6 +902,6 @@ uint8_t incrementBrightness(uint8_t brt)
     da      a;
     mov     r7,a;
     __endasm;
-    if ( brt == 0x64 ) brt = 1;
+    if ( bcdToDec(brt) > MAX_BRIGHT ) brt = MIN_BRIGHT;
     return brt;
 }

@@ -192,7 +192,8 @@ __bit checkAndClearS1()
         pressedS1 = FALSE;
         return TRUE;
     }
-    return FALSE;
+    else
+        return FALSE;
 }
 
 // Check if S2 pressed. Return TRUE and dump key events if so.
@@ -204,7 +205,8 @@ __bit checkAndClearS2()
         pressedS2 = FALSE;
         return TRUE;
     }
-    return FALSE;
+    else
+        return FALSE;
 }
 
 // Check if S1 pressed. Set new state if true.
