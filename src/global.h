@@ -58,8 +58,8 @@
 #define OPT_CHIME       TRUE    // FALSE removes and decreases flash usage
 #define OPT_TEMP_DSP    TRUE
 #define OPT_DATE_DSP    TRUE
-#define OPT_DAY_DSP     TRUE
-#define OPT_UNITS_GROUP FALSE   // use 12/F/MD or 24/C/DM groups
+#define OPT_DAY_DSP     FALSE
+#define OPT_UNITS_GROUP TRUE    // use 12/F/MD or 24/C/DM groups
 
 // Set the default units for the clock
 // Use only one each of these groups of two
