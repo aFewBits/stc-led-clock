@@ -13,7 +13,4 @@ uint8_t toFormat12(uint8_t);
 uint8_t toFormat24(uint8_t);
 void changeTimeFormat(__bit);
 
-void checkChime();
-void soundChime();
-
 #endif

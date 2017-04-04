@@ -128,7 +128,9 @@ uint8_t toFormat24(uint8_t h12)
 
 void changeTimeFormat(__bit newFormat)
 {
+    // if the same setting as before, nothing to do
     if ( newFormat != Select_12){
+        // else format based on new setting 1=12hr,0=24hr
         if (newFormat){
             Select_12 = TRUE;
             Select_MD = TRUE;
@@ -148,57 +150,5 @@ void changeTimeFormat(__bit newFormat)
             clockRam.chimeStopHour  = toFormat24(clockRam.chimeStopHour);
         }
     }
-}
-
-// checkChime - convert current time and chime S/S to 24 hour format
-// then setup proper start/stop order and compare to see if chime
-// should sound
-
-void checkChime()
-{
-    uint8_t tCurrent,tStart,tStop,t;
-    __bit tFormat;
-
-//    printf_tiny("%x %x %x\n",clockRam.hr,clockRam.min,clockRam.sec);
-
-
-    tFormat = Select_12;
-    changeTimeFormat(FALSE);    // convert to 24 hour (maybe)
-    tCurrent = clockRam.hr;
-    tStart = clockRam.chimeStartHour;
-    tStop = clockRam.chimeStopHour;
-    changeTimeFormat(tFormat);    // convert back to entry state
-
-//    printf_tiny("%x %x %x\n",tCurrent,tStart,tStop);
-
-
-    if (tStart > tStop){
-        t = tStart;
-        tStart = tStop;
-        tStop = t;
-    }
-    if ( tCurrent >= tStart )
-        soundChime();
-    else if ( tCurrent <= tStop )
-        soundChime();
-}
-
-// soundChime - Toggle the buzzer on and off at alarm rate only once.
-// The buzzer has its own native frequency when +5 volts is applied.
-// The polarity is usually low to sound buzzer so the constants
-// BZR_ON and BZR_OFF are usually inverted (ON = 0, OFF = 1)
-// This routine must consume more than 1000ms else it will refire
-// when it returns since time will still be 00:00
-
-void soundChime()
-{
-    BZR_ON;
-    delay3(66);         // 200ms
-    BZR_OFF;
-    delay3(33);         // 100ms
-    BZR_ON;
-    delay3(66);         // 200ms
-    BZR_OFF;
-    delay3(250);        // 750ms for 1050ms total
 }
 

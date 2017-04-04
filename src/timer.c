@@ -17,17 +17,24 @@ volatile uint8_t    _500msTimer;        // increments, blinks ":" seperator at 1
 volatile uint8_t    userTimer100;       // user delay in 100ms ticks (25.5 seconds max)
 volatile uint8_t    userTimer3;         // user delay in 3ms ticks 765ms max (3*255)
 
-volatile uint16_t   stateQueueS1;      // holds 16 key states
-volatile uint8_t    stateQS1;          // 8 bit state value (for detecting state changes)
-volatile __bit      pressedS1;         // true when pressed, user clears
+volatile uint16_t   stateQueueS1;       // holds 16 key states
+volatile uint8_t    stateQS1;           // 8 bit state value (for detecting state changes)
+volatile __bit      pressedS1;          // true when pressed, user clears
 
-volatile uint16_t   stateQueueS2;      // pressed, released, etc.
-volatile uint8_t    stateQS2;          // 8 bit state value (for detecting state changes)
-volatile uint8_t    stateLS2;          // 8 bit last state
-volatile __bit      pressedS2;         // true when pressed, user clears
+volatile uint16_t   stateQueueS2;       // pressed, released, etc.
+volatile uint8_t    stateQS2;           // 8 bit state value (for detecting state changes)
+volatile uint8_t    stateLS2;           // 8 bit last state
+volatile __bit      pressedS2;          // true when pressed, user clears
 
-volatile uint8_t    keyRepeatTimer;    // sets repeat time (in 10ms ticks)
-volatile uint8_t    keyDebounceTimer;  // in timer 0 ticks (max 12.8ms at 50us)
+volatile uint8_t    keyRepeatTimer;     // sets repeat time (in 10ms ticks)
+volatile uint8_t    keyDebounceTimer;   // in timer 0 ticks (max 12.8ms at 50us)
+
+#if HAS_NY3P_SPEECH
+volatile uint16_t   stateQueueS3;       // holds 16 key states
+volatile uint8_t    stateQS3;           // 8 bit state value (for detecting state changes)
+volatile __bit      pressedS3;          // true when pressed, user clears
+volatile uint8_t    soundTimer;         // typically set to 10 ticks (500us)
+#endif
 
 __bit _1hzToggle;   // 500 ms pulse width (blinks : in display)
 __bit _5hzToggle;   // 100 ms used to blink digits being set
@@ -76,6 +83,9 @@ void timer0_isr() __interrupt 1
             _1hzToggle =! _1hzToggle;
         }
     }
+  #if HAS_NY3P_SPEECH
+    if (soundTimer) soundTimer--;
+  #endif
 }
 
 // User delay routine
@@ -115,6 +125,13 @@ void debounceSwitches(void)
         keyRepeatTimer = KEY_REPEAT;        // 200ms (1 tick = 10ms)
     // save last state for timer logic
     stateLS2 = stateQS2;
+
+#if HAS_NY3P_SPEECH
+    // sw3
+    stateQueueS3 = stateQueueS3<<1 | S3 | Q_HELD;
+    stateQS3 = state16to8(stateQueueS3);
+    if (stateQS3 == K_PRESSED) pressedS3 = TRUE;
+#endif
 }
 
 // Used at power up to detect user reset
@@ -208,6 +225,23 @@ __bit checkAndClearS2()
     else
         return FALSE;
 }
+
+// Check if S3 pressed. Return TRUE and dump key events if so.
+// Return FALSE if no key pressed.
+
+#ifdef S3
+
+__bit checkAndClearS3()
+{
+    if (pressedS3){
+        pressedS3 = FALSE;
+        return TRUE;
+    }
+    else
+        return FALSE;
+}
+
+#endif
 
 // Check if S1 pressed. Set new state if true.
 

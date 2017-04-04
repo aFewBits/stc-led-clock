@@ -2,6 +2,7 @@
 #ifndef _DS1302_H
 #define _DS1302_H
 
+/*
 typedef enum {
     kSunday    = 1,
     kMonday    = 2,
@@ -11,6 +12,7 @@ typedef enum {
     kFriday    = 6,
     kSaturday  = 7
 } Day;
+*/
 
 enum Register {
   kSecondReg       = 0,

@@ -2,8 +2,6 @@
 #include <stdint.h>
 #include "stc15.h"
 #include "global.h"
-#include "timer.h"
-#include "adc.h"
 #include "ds1302.h"
 #if DEBUG
 #include "serial.h"
@@ -29,7 +27,7 @@ __bit __at 0x7F Select_12;  // = 1 when 12 hr mode
 void wait500()
 {
     // the call overhead + 4 nops = 500ns
-    __asm__ ("\tnop\n\tnop\n\tnop\n");
+    __asm__ ("\tnop\n\tnop\n\tnop\n");
 }
 
 // Reset and enable the 3-wire interface
@@ -38,9 +36,9 @@ void wait500()
 void reset_3w()
 {
     SCLK = 0;
-    CE = 0;
+    CE_LO;
     wait500();
-    CE = 1;
+    CE_HI;
 }
 
 // Write one byte to the DS1302
@@ -52,8 +50,13 @@ void wbyte_3w(uint8_t W_Byte)
     uint8_t i;
 
     for(i = 0; i < 8; ++i){
+#ifdef IO
         IO = 0;                 // do not remove!
         IO = (W_Byte & 0x01);
+#else
+        IO_LO;
+        IO_WR;
+#endif
         wait500();
         SCLK = 0;
         wait500();
@@ -78,7 +81,11 @@ uint8_t	rbyte_3w()
         wait500();
         SCLK = 0;
         wait500();              // wait for I/O pin to settle
+#ifdef IO
         TmpByte = (uint8_t)IO;  // get new bit
+#else
+        TmpByte = (uint8_t)IO_RD;
+#endif
         TmpByte <<= 7;
         R_Byte >>= 1;
         R_Byte |= TmpByte;      // save parital byte
@@ -210,23 +217,22 @@ void initRtc()
 // Declaring invalid values will usually result in just strange
 // displays - but may cause crashes since the data is not validated.
 
-#ifdef TEST_DEFAULTS
 const uint8_t iniTable[] = {
+#if TEST_DEFAULTS
         0x55,0x59,0xA7,                     // 07:59:55 pm
         0x12,0x31,                          // date,month
         0x01,                               // day of week
         0x16,                               // year (unused)
         0x55,0xAA,                          // checksum bytes
         kSelect_12+kSelect_MD+kSelect_FC+ \
-        kAlarmOn+kChimeOn+kTempOn+kDowOn,   // mode bits
+        kAlarmOn+kChimeOn+                \
+        kTempOn+kDateOn+kDowOn,             // mode bits
         0xA8,0x00,                          // 8:00pm alarm
         0x88,                               // 8:00am chime start
         0xA9,                               // 9:00pm chime stop
-        0x63,0x62,                          // brightness max.min (0x63 max)
+        0x50,0x05,                          // brightness max.min (0x63 max)
         0x00                                // temp offset
-};
-#else
-const uint8_t iniTable[] = {
+#elif SET_12HR_FORMAT
         0x55,0x59,0xA7,                     // 07:59:55 pm
         0x12,0x31,                          // date,month
         0x01,                               // day of week
@@ -236,24 +242,23 @@ const uint8_t iniTable[] = {
         0x88,0x00,                          // 8:00am alarm
         0x88,                               // 8:00am chime start
         0xA5,                               // 5:00pm chime stop
-        0x50,0x01,                          // brightness max.min (0x63 max)
+        0x63,0x1,                           // brightness max.min (0x63 max)
         0x00                                // temp offset
-};
+#elif SET_24HR_FORMAT
+        0x55,0x59,0x19,                     // 19:59:55 pm
+        0x12,0x31,                          // date,month
+        0x01,                               // day of week
+        0x16,                               // year (unused)
+        0x55,0xAA,                          // checksum bytes
+        0x00,                               // mode bits
+        0x08,0x00,                          // 08:00 alarm
+        0x08,                               // 08:00 chime start
+        0x17,                               // 17:00 chime stop
+        0x63,0x1,                           // brightness max.min (0x63 max)
+        0x00                                // temp offset
 #endif
+};
 
-// Sample 24 hour setup:
-//
-//        0x55,0x59,0x19,                   // 19:59:55 pm
-//        0x12,0x31,                        // date,month
-//        0x01,                             // day of week
-//        0x16,                             // year (unused)
-//        0x55,0xAA,                        // checksum bytes
-//        0x00,                             //
-//        0x08,0x00,                        // 08:00 alarm
-//        0x08,                             // 08:00 chime start
-//        0x17,                             // 17:00 chime stop
-//        0x50,0x05,                        // brightness max.min (0x63 max)
-//        0x00                              // temp offset
 
 void initColdStart()
 {

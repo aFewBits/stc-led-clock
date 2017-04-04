@@ -31,7 +31,8 @@ void stateSwitchExtendedWithS2(uint8_t,uint8_t,__bit);
 
 __bit checkAndClearS1();
 __bit checkAndClearS2();
-//__bit checkS2();
+__bit checkAndClearS3();
+
 __bit checkForReset();
 __bit checkForRelease();
 __bit getStateS2Flasher();
