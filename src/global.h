@@ -20,22 +20,26 @@
 // Begin Hardware Option configuration
 //---------------------------------------------------------------------------
 
-#define BOARD_TALKING      FALSE    // Banggood talking clock
-#define BOARD_BLUE_6       TRUE     // Std Geekcreit clock 
-#define BOARD_YELLOW_51    FALSE    // Banggod board with 20 pin 15F204EA
-#define BOARD_YELLOW_52    FALSE    // Odd-ball board with non-std everything
+#define BOARD_TALKING      FALSE
+#define BOARD_BLUE_6       FALSE
+#define BOARD_BLUE_5_RELAY TRUE
+#define BOARD_YELLOW_5     FALSE
+#define BOARD_YELLOW_SMALL FALSE
+#define BOARD_WHITE_SMALL  FALSE
+#define BOARD_GREEN_SMALL  FALSE
 
-#define BOARD_YELLOW_SMALL FALSE    // 0.8" LED with LDR and thermistor
-#define BOARD_WHITE_SMALL  FALSE    // these two boards require a display type
-                                    // The Blue and Red LED are usually Common Cathode
-                                    // The Green and White, Common Anode
-#define COMMON_ANODE   TRUE         // So pick one of these two types
-#define COMMON_CATHODE FALSE        // to match the actual LED used
+#define COMMON_ANODE   TRUE
+#define COMMON_CATHODE FALSE
+
+#define PROC_IS_15W408AS TRUE
+#define PROC_IS_15W404AS FALSE
+#define PROC_IS_15F204EA FALSE
 
 #define HAS_LDR TRUE
 #define HAS_THERMISTOR TRUE
+#define HAS_RELAY TRUE
 
-#define DIGIT_3_FLIP TRUE           // for 1" displays with the upside down LED package
+#define DIGIT_3_FLIP TRUE
 
 // When setting TEST_DEFAULTS to TRUE,
 // ensure that all display options are TRUE as well
@@ -55,11 +59,11 @@
 //---------------------------------------------------------------------------
 
 #define OPT_ALARM       TRUE    // TRUE to implement
-#define OPT_CHIME       TRUE    // FALSE removes and decreases flash usage
+#define OPT_CHIME       TRUE    // FALSE removes
 #define OPT_TEMP_DSP    TRUE
 #define OPT_DATE_DSP    TRUE
-#define OPT_DAY_DSP     FALSE
-#define OPT_UNITS_GROUP TRUE    // use 12/F/MD or 24/C/DM groups
+#define OPT_DAY_DSP     TRUE
+#define OPT_UNITS_GROUP FALSE    // use 12/F/MD or 24/C/DM groups
 
 // Set the default units for the clock
 // Use only one each of these groups of two
@@ -121,10 +125,12 @@
 #define BZR_ON  P1_5 = 0            // direct port assigments
 #define BZR_OFF P1_5 = 1            // with logic
 
+#if COMMON_ANODE
 #define SET_PORT_DRIVE ;
 #define LED_SET_ANODES   P3 &= ~(0b00000100 << aPos)
 #define LED_RESET_ANODES P3 |=   0b00111100
 #define LED_SET_CATHODES P2 = CathodeBuf[aPos]  // seg A = P.0 assumed
+#endif
 
 #endif  // end board_talking
 
@@ -137,6 +143,10 @@
 
 #define S2 P3_0                     // push button input pin aliases
 #define S1 P3_1
+
+#if HAS_RELAY                       // not suuplied (user can)
+#define RELAY P1_4                  // port/pin for relay
+#endif
 
 // DS1302 pin to port mapping
 
@@ -163,49 +173,72 @@
 #define BZR_ON  P1_5 = 0            // direct port assigments
 #define BZR_OFF P1_5 = 1            // with logic
 
+#if COMMON_ANODE
 #define SET_PORT_DRIVE ;
 #define LED_SET_ANODES   P3 &= ~(0b00000100 << aPos)
 #define LED_RESET_ANODES P3 |=   0b00111100
 #define LED_SET_CATHODES P2 = CathodeBuf[aPos]  // seg A = P.0 assumed
+#endif
 
 #endif  // end board_blue_6
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-#if BOARD_YELLOW_51
+#if BOARD_BLUE_5_RELAY
 
 // Pushbutton port pins
 
-#define S2 P3_0                     // push button input pin aliases
-#define S1 P3_1
+#define S1 P3_0
+#define S2 P3_1                     // push button input pin aliases
+
+#if HAS_RELAY
+#define RELAY P1_4                  // port/pin for relay
+#endif
 
 // DS1302 pin to port mapping
+#if PROC_IS_15W408AS || PROC_IS_15W404AS
+#define CE_HI   P5 |= 0b00010000;       // P5.4 DS1302 pin 5 set
+#define CE_LO   P5 &= 0b11101111;       //                   unset
+#define IO_LO P5 &= 0b11011111;         // P5.5 DS1302 pin 6
+#define IO_WR P5|=((W_Byte&0x01)<<5 )   // write I/O pin
+#define IO_RD (P5 & 0b00100000)>>5      // read I/O pin
+#define SCLK P3_2                       // P3.2 DS1302 pin 7
+#elif PROC_IS_15F204EA
+// not setup yet
+#endif
 
-#define CE_HI P0_0 = 1;             // pin 5
-#define CE_LO P0_0 = 0;
-#define IO   P0_1                   // pin 6
-#define SCLK P3_2                   // pin 7
-
+// adc channels for sensors
+#if HAS_LDR
+#define ADC_LDR   6
+#define SET_LDR_PORT  P1M1 |= (1 << ADC_LDR); P1M0 |= (1 << ADC_LDR);
+#else
 #define SET_LDR_PORT ;
-#define SET_THERMISTOR_PORT ;
+#endif
+
+#if HAS_THERMISTOR
+#define ADC_TEMP  3
+#define SET_THERMISTOR_PORT P1M1 |= (1 << ADC_TEMP); P1M0 |= (1 << ADC_TEMP);
+#endif
 
 // buzzer port pins and active state set
 
 #define BZR_ON  P3_3 = 0            // direct port assigments
 #define BZR_OFF P3_3 = 1            // with logic
 
+#if COMMON_ANODE
 #define SET_PORT_DRIVE ;
 #define LED_SET_ANODES   P3 &= ~(0b00010000 << aPos)
 #define LED_RESET_ANODES P3 |=   0b11110000
-#define LED_SET_CATHODES P1 = CathodeBuf[aPos]  // seg A = P.0 assumed
+#define LED_SET_CATHODES P2 = CathodeBuf[aPos]  // seg A = P.0 assumed
+#endif
 
-#endif  // end YELLOW_51
+#endif  // end board_blue_5_relay
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-#if BOARD_YELLOW_52
+#if BOARD_YELLOW_5
 
 // Pushbutton port pins
 
@@ -243,14 +276,15 @@
 #define BZR_ON  P3_3 = 0            // direct port assigments
 #define BZR_OFF P3_3 = 1            // with logic
 
+#if COMMON_ANODE
 #define SET_PORT_DRIVE ;
 #define LED_SET_ANODES   P3 &= ~(0b00010000 << aPos)
 #define LED_RESET_ANODES P3 |=   0b11110000
 #define LED_SET_CATHODES P2 = CathodeBuf[aPos]  // seg A = P.0 assumed
+#endif
 
 #endif  // end board_yellow_5
 
-//---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
@@ -309,13 +343,12 @@
 
 // Pushbutton port pins
 
-#define S2 P2_6                     // push button input pin aliases
-#define S1 P2_7
+#define S2 P1_1                     // push button input pin aliases
+#define S1 P1_0
 
 // DS1302 pin to port mapping
 
-#define CE_HI P1_1 = 1;             // pin 5
-#define CE_LO P1_1 = 0;
+#define CE   P1_1                   // pin 5
 #define IO   P1_2                   // pin 6
 #define SCLK P1_0                   // pin 7
 
@@ -352,4 +385,54 @@
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
+#if BOARD_GREEN_SMALL
+
+#define DP1_IS_COLON TRUE
+
+// Pushbutton port pins
+
+#define S2 P1_3                     // push button input pin aliases
+#define S1 P1_4
+
+// DS1302 pin to port mapping
+// Port 0.1 is 5.5 on the 15W408AS!!!!
+
+#if PROC_IS_15W408AS || PROC_IS_15W404AS
+#define CE_HI   P5 |= 0b00100000;       // P5.5 DS1302 pin 5 set
+#define CE_LO   P5 &= 0b11011111;       //                   unset
+#define IO   P3_1                       // pin 6
+#define SCLK P3_2                       // P3.2 DS1302 pin 7
+#elif PROC_IS_15F204EA
+#define CE   P1_0                   // pin 5
+#define IO   P3_1                   // pin 6
+#define SCLK P3_2                   // pin 7
+#endif
+
+// adc channels for sensors
+#if HAS_LDR
+#define ADC_LDR   4
+#define SET_LDR_PORT  P1M1 |= (1 << ADC_LDR); P1M0 |= (1 << ADC_LDR);
+#endif
+
+#if HAS_THERMISTOR
+#define ADC_TEMP  3
+#define SET_THERMISTOR_PORT P1M1 |= (1 << ADC_TEMP); P1M0 |= (1 << ADC_TEMP);
+#endif
+
+// buzzer port pins and active state set
+
+#define BZR_ON  P3_0 = 0         // direct port assigments
+#define BZR_OFF P3_1 = 1         // with logic
+
+#if COMMON_CATHODE
+#define SET_PORT_DRIVE P2M0 = 0xFF;
+#define LED_SET_ANODES   P3 &= ~(0b00001000 << aPos)
+#define LED_RESET_ANODES P3 |=  0b01111000
+#define LED_SET_CATHODES P2 = ~CathodeBuf[aPos]  // seg A = P.0 assumed
+#endif
+
+#endif  // endif board_green_small
+
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 #endif
