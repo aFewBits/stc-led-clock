@@ -22,14 +22,14 @@
 
 #define BOARD_TALKING      FALSE
 #define BOARD_BLUE_6       FALSE
-#define BOARD_BLUE_5_RELAY TRUE
+#define BOARD_BLUE_5_RELAY FALSE
 #define BOARD_YELLOW_5     FALSE
-#define BOARD_YELLOW_SMALL FALSE
+#define BOARD_YELLOW_SMALL TRUE
 #define BOARD_WHITE_SMALL  FALSE
 #define BOARD_GREEN_SMALL  FALSE
 
-#define COMMON_ANODE   TRUE
-#define COMMON_CATHODE FALSE
+#define COMMON_ANODE   FALSE
+#define COMMON_CATHODE TRUE
 
 #define PROC_IS_15W408AS TRUE
 #define PROC_IS_15W404AS FALSE
@@ -37,9 +37,9 @@
 
 #define HAS_LDR TRUE
 #define HAS_THERMISTOR TRUE
-#define HAS_RELAY TRUE
+#define HAS_RELAY FALSE
 
-#define DIGIT_3_FLIP TRUE
+#define DIGIT_3_FLIP FALSE
 
 // When setting TEST_DEFAULTS to TRUE,
 // ensure that all display options are TRUE as well
@@ -343,12 +343,13 @@
 
 // Pushbutton port pins
 
-#define S2 P1_1                     // push button input pin aliases
-#define S1 P1_0
+#define S2 P2_6                     // push button input pin aliases
+#define S1 P2_7
 
 // DS1302 pin to port mapping
 
-#define CE   P1_1                   // pin 5
+#define CE_HI P1_1 = 1;             // pin 5
+#define CE_LO P1_1 = 0;
 #define IO   P1_2                   // pin 6
 #define SCLK P1_0                   // pin 7
 

@@ -4,15 +4,15 @@ const uint8_t textDesc2[]= {
     0xC6,0xC7,  // CL txClock
     0x88,0xC7,  // AL txAlarm
     0xC6,0x89,  // CH txChime
-#if OPT_DATE_DSP
+  #if OPT_DATE_DSP
     0xA1,0x88,  // dA txDate
-#endif
-#if OPT_DAY_DSP
+  #endif
+  #if OPT_DAY_DSP
     0xA1,0x91,  // dy txDay
-#endif
-#if OPT_TEMP_DSP
+  #endif
+  #if OPT_TEMP_DSP
     0x87,0x8C,  // tP txTemp
-#endif
+  #endif
     #if OPT_UNITS_GROUP
         0xC8,0x92,  // US
         0xB0,0xC1   // EU
@@ -26,18 +26,18 @@ const uint8_t textDesc2[]= {
     0xC6,0xC7,  // CL txClock
     0x88,0xC7,  // AL txAlarm
     0xC6,0x89,  // CH txChime
-#if OPT_DATE_DSP
+  #if OPT_DATE_DSP
     0xA1,0x88,  // dA txDate
-#endif
-#if OPT_DAY_DSP
+  #endif
+  #if OPT_DAY_DSP
     0xA1,0x91,  // dy txDay
-#endif
-#if OPT_TEMP_DSP
+  #endif
+  #if OPT_TEMP_DSP
     0x87,0x8C,  // tP txTemp
-#endif
+ #endif
     #if OPT_UNITS_GROUP
-        0xC8,0x92,  // US
-        0xB0,0xC1   // EU
+        0xC1,0x92,  // US
+        0x86,0xC1   // EU
     #else
         0xF9,0xA4,  // 12
         0xA4,0x99,  // 24
