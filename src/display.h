@@ -45,13 +45,6 @@ enum stateTable {
         msDayOff,msDayOn,
 #endif
     // cfg:
-#if OPT_UNITS_GROUP
-        msSetUnits,msEU,msUS,
-#else
-        msFormatTime,ms24,ms12,
-        msTempUnits,msC,msF,
-        msFormatDate,ms3112,ms1231,
-#endif
         msBrightness,msBrtMax,msBrtMin,
 #if OPT_TEMP_DSP
         msTempCal,msSetTemp,
@@ -73,15 +66,6 @@ enum text2Entry {
 #if OPT_TEMP_DSP
     txTemp,
 #endif
-#if OPT_UNITS_GROUP
-    txUS,
-    txEU,
-#else
-    tx12,
-    tx24,
-    txF,
-    txC,
-#endif
     NoText2
     };
 
@@ -92,13 +76,6 @@ enum text4Entry {
     txDsp,
     txCfg,
 // config stuff
-#if OPT_UNITS_GROUP
-    txUnit,
-#else
-    tx1224,
-    tx1231,
-    tx3112,
-#endif
     txBrt,
     txCal,
     txDate4,

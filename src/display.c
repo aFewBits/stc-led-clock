@@ -191,7 +191,7 @@ void displayFSM()
         if ( !userTimer100 ) displayState = stClock;
         break;
 
-#if OPT_TEMP_DSP  
+#if OPT_TEMP_DSP
     case stOptTemp:
         displayTemperature();
         stateSwitchWithS1(scSet);
@@ -276,11 +276,7 @@ void displayFSM()
     case scCfg:
         setText4(txCfg);
         stateSwitchWithS1(msExit);
-#if OPT_UNITS_GROUP
-        stateSwitchWithS2(msSetUnits);
-#else
-        stateSwitchWithS2(msFormatTime);
-#endif
+        stateSwitchWithS2(msBrightness);
 
         break;
 
@@ -578,89 +574,9 @@ void displayFSM()
 // begin configuration routines
 // ###################################################################################
 
-#if OPT_UNITS_GROUP
-    case msSetUnits:
-        setText4(txUnit);
-        stateSwitchWithS1(msBrightness);
-        stateSwitchExtendedWithS2(msUS,NoText2,Select_12);
-        break;
-
-    case msEU:
-        setText2A(txEU);
-        changeTimeFormat(FALSE);
-        stateSwitchWithS1(msBrightness);
-        stateSwitchWithS2(msUS);
-        break;
-
-    case msUS:
-        setText2A(txUS);
-        changeTimeFormat(TRUE);
-        stateSwitchWithS1(msBrightness);
-        stateSwitchWithS2(msEU);
-        break;
-#else
-    case msFormatTime:
-        setText4(tx1224);
-        stateSwitchWithS1(msTempUnits);
-        stateSwitchExtendedWithS2(ms12,NoText2,Select_12);
-        break;
-
-    case ms12:
-        setText2A(tx12);
-        changeTimeFormat(TRUE);
-        stateSwitchWithS1(msTempUnits);
-        stateSwitchWithS2(ms24);
-        break;
-
-    case ms24:
-        setText2A(tx24);
-        changeTimeFormat(FALSE);
-        stateSwitchWithS1(msTempUnits);
-        stateSwitchWithS2(ms12);
-        break;
-
-    case msTempUnits:
-        setText4(txTemp4);
-        stateSwitchWithS1(msFormatDate);
-        stateSwitchExtendedWithS2(msF,NoText2,Select_FC);
-        break;
-
-    case msF:
-        setText2A(txF);
-        Select_FC = TRUE;
-        stateSwitchWithS1(msFormatDate);
-        stateSwitchWithS2(msC);
-        break;
-
-    case msC:
-        setText2A(txC);
-        Select_FC = FALSE;
-        stateSwitchWithS1(msFormatDate);
-        stateSwitchWithS2(msF);
-        break;
-
-    case msFormatDate:
-        setText4(txDate4);
-        stateSwitchWithS1(msBrightness);
-        stateSwitchExtendedWithS2(ms1231,NoText2,Select_MD);
-        break;
-
-    case ms1231:
-        setText4(tx1231);
-        Select_MD = TRUE;
-        stateSwitchWithS1(msBrightness);
-        stateSwitchWithS2(ms3112);
-        break;
-
-    case ms3112:
-        setText4(tx3112);
-        Select_MD = FALSE;
-        stateSwitchWithS1(msBrightness);
-        stateSwitchWithS2(ms1231);
-        break;
-#endif
     case msBrightness:
         setText4(txBrt);
+
 #if OPT_TEMP_DSP
         stateSwitchWithS1(msTempCal);
 #else

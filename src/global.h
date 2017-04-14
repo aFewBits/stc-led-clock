@@ -22,14 +22,14 @@
 
 #define BOARD_TALKING      FALSE
 #define BOARD_BLUE_6       FALSE
-#define BOARD_BLUE_5_RELAY FALSE
+#define BOARD_BLUE_5_RELAY TRUE
 #define BOARD_YELLOW_5     FALSE
-#define BOARD_YELLOW_SMALL TRUE
+#define BOARD_YELLOW_SMALL FALSE
 #define BOARD_WHITE_SMALL  FALSE
 #define BOARD_GREEN_SMALL  FALSE
 
-#define COMMON_ANODE   FALSE
-#define COMMON_CATHODE TRUE
+#define COMMON_ANODE   TRUE
+#define COMMON_CATHODE FALSE
 
 #define PROC_IS_15W408AS TRUE
 #define PROC_IS_15W404AS FALSE
@@ -37,9 +37,9 @@
 
 #define HAS_LDR TRUE
 #define HAS_THERMISTOR TRUE
-#define HAS_RELAY FALSE
+#define HAS_RELAY TRUE
 
-#define DIGIT_3_FLIP FALSE
+#define DIGIT_3_FLIP TRUE
 
 // When setting TEST_DEFAULTS to TRUE,
 // ensure that all display options are TRUE as well
@@ -63,19 +63,18 @@
 #define OPT_TEMP_DSP    TRUE
 #define OPT_DATE_DSP    TRUE
 #define OPT_DAY_DSP     TRUE
-#define OPT_UNITS_GROUP FALSE    // use 12/F/MD or 24/C/DM groups
 
 // Set the default units for the clock
 // Use only one each of these groups of two
 
-#define SET_12HR_FORMAT TRUE
-#define SET_24HR_FORMAT FALSE
+#define SET_12HR_FORMAT FALSE
+#define SET_24HR_FORMAT TRUE
 
-#define SET_MMDD_FORMAT TRUE
-#define SET_DDMM_FORMAT FALSE
+//#define SET_MMDD_FORMAT TRUE
+//#define SET_DDMM_FORMAT FALSE
 
-#define SET_DEGF_FORMAT TRUE
-#define SET_DEGC_FORMAT FALSE
+//#define SET_DEGF_FORMAT TRUE
+//#define SET_DEGC_FORMAT FALSE
 
 //---------------------------------------------------------------------------
 // End Software Option configuration
@@ -343,13 +342,12 @@
 
 // Pushbutton port pins
 
-#define S2 P2_6                     // push button input pin aliases
-#define S1 P2_7
+#define S2 P1_1                     // push button input pin aliases
+#define S1 P1_0
 
 // DS1302 pin to port mapping
 
-#define CE_HI P1_1 = 1;             // pin 5
-#define CE_LO P1_1 = 0;
+#define CE   P1_1                   // pin 5
 #define IO   P1_2                   // pin 6
 #define SCLK P1_0                   // pin 7
 
