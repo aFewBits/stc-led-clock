@@ -39,8 +39,8 @@ struct Clock {
     uint8_t sec;            // seconds. Range: {0...59}
     uint8_t min;            // minutes. Range: {0...59}
     uint8_t hr;             // hours.   Range: {0...23} or {1...12}
-    uint8_t mon;            // month.   Range: {1...12}
     uint8_t date;           // dom.     Range: {1...31}
+    uint8_t mon;            // month.   Range: {1...12}
     uint8_t day;            // dow      Range: {1...7}  Sunday = 1;
     uint8_t yr;             // year.    Range: {00...99}
     uint8_t check0;         // 0xAA     check0 xor check1 = 0xFF
@@ -71,13 +71,18 @@ struct Clock {
 #define kSelect_12   0x80        // = 1 when 12 hr mode
 
 // External module usage:
-void    initRtc();
-void    initColdStart();
 void    getClock();
 void    putClock();
 void    refreshTime();
+void    initRtc();
+void    initColdStart();
 
 // Internal module use only
+
+void    wait500();
+void    reset_3w();
+void    wbyte_3w(uint8_t W_Byte);
+uint8_t	rbyte_3w();
 void	getConfigRam();
 void	putConfigRam();
 

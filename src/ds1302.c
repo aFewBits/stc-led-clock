@@ -37,7 +37,7 @@ void reset_3w()
 {
     SCLK = 0;
     CE_LO;
-    wait500();
+  __asm__ ("\tlcall\t_wait500\n");
     CE_HI;
 }
 
@@ -57,9 +57,9 @@ void wbyte_3w(uint8_t W_Byte)
         IO_LO;
         IO_WR;
 #endif
-        wait500();
+  __asm__ ("\tlcall\t_wait500\n");
         SCLK = 0;
-        wait500();
+  __asm__ ("\tlcall\t_wait500\n");
         SCLK = 1;               // write occurs on 0->1
         W_Byte >>= 1;
     }
@@ -78,9 +78,9 @@ uint8_t	rbyte_3w()
     R_Byte = 0x00;
     for(i = 0; i < 8; i++){
         SCLK = 1;               // read occurs on 1->0
-        wait500();
-        SCLK = 0;
-        wait500();              // wait for I/O pin to settle
+  __asm__ ("\tlcall\t_wait500\n");
+        SCLK = 0;               // wait for I/O pin to settle
+  __asm__ ("\tlcall\t_wait500\n");
 #ifdef IO
         TmpByte = (uint8_t)IO;  // get new bit
 #else
@@ -94,20 +94,20 @@ uint8_t	rbyte_3w()
 }
 
 // Burst mode clock data registers from DS1302 and install in struct
-// Process "Hours" and convert from 24hr format if in 12hr mode
-// Return pointer to struct for use by the caller
 
 void getClock()
 {
     reset_3w();
     wbyte_3w(kClockBurstRead);
-    clockRam.sec  = rbyte_3w();
-    clockRam.min  = rbyte_3w();
-    clockRam.hr   = rbyte_3w();
-    clockRam.date = rbyte_3w();
-    clockRam.mon  = rbyte_3w();
-    clockRam.day  = rbyte_3w();
-    clockRam.yr   = rbyte_3w();
+    __asm
+    mov     r2,#clockSize
+    mov     r1,#_clockRam
+L060:
+    lcall   _rbyte_3w
+    mov     @r1,dpl
+    inc     r1
+    djnz    r2,L060
+    __endasm;
     reset_3w();
 }
 
@@ -117,13 +117,15 @@ void putClock()
 {
     reset_3w();
     wbyte_3w(kClockBurstWrite);
-    wbyte_3w(clockRam.sec);
-    wbyte_3w(clockRam.min);
-    wbyte_3w(clockRam.hr);
-    wbyte_3w(clockRam.date);
-    wbyte_3w(clockRam.mon);
-    wbyte_3w(clockRam.day);
-    wbyte_3w(clockRam.yr);
+    __asm
+    mov     r2,#clockSize
+    mov     r1,#_clockRam
+L070:
+    mov     dpl,@r1
+    lcall   _wbyte_3w
+    inc     r1
+    djnz    r2,L070
+    __endasm;
     wbyte_3w(0);                // must write 8 bytes in burst mode
     reset_3w();
 }
@@ -134,14 +136,16 @@ void putClock()
 void refreshTime()
 {
     reset_3w();
-    wbyte_3w(0x81);             // read seconds value
-    clockRam.sec = rbyte_3w();
-    reset_3w();
-    wbyte_3w(0x83);             // minutes v
-    clockRam.min = rbyte_3w();
-    reset_3w();
-    wbyte_3w(0x85);             // and hours
-    clockRam.hr = rbyte_3w();
+    wbyte_3w(kClockBurstRead);
+    __asm
+    mov     r2,#3               ; only want HR/Min/Sec
+    mov     r1,#_clockRam
+L075:
+    lcall   _rbyte_3w
+    mov     @r1,dpl
+    inc     r1
+    djnz    r2,L075
+    __endasm;
     reset_3w();
 }
 
@@ -150,14 +154,17 @@ void refreshTime()
 
 void getConfigRam()
 {
-    uint8_t i, *p;
-
     reset_3w();
     wbyte_3w(kRamBurstRead);
-    p = &clockRam.check0;
-    for (i = 0; i < configSize; i++){
-        *p++ = rbyte_3w();
-    }
+    __asm
+    mov     r2,#configSize
+    mov     r1,#_clockRam+7
+L080:
+    lcall   _rbyte_3w
+    mov     @r1,dpl
+    inc     r1
+    djnz    r2,L080
+    __endasm;
     reset_3w();
     // set all 8 bits in one whack
     configBitReg = clockRam.statusBits;
@@ -168,44 +175,20 @@ void getConfigRam()
 
 void putConfigRam()
 {
-    uint8_t	i, *p;
-
+    reset_3w();
     // push the user bits back into ram memory
     clockRam.statusBits = configBitReg;
-    p = &clockRam.check0;
-    reset_3w();
     wbyte_3w(kRamBurstWrite);
-    for (i = 0; i < configSize; ++i){
-        wbyte_3w(*p++);
-    }
+    __asm
+    mov     r2,#configSize
+    mov     r1,#_clockRam+7
+L090:
+    mov     dpl,@r1
+    lcall   _wbyte_3w
+    inc     r1
+    djnz    r2,L090
+    __endasm;
     reset_3w();
-}
-
-// --- Power up initization of the DS1302 RTC chip
-// --- initialize time & date from user entries ---
-
-void initRtc()
-{
-    uint8_t	t;
-
-    reset_3w();
-    wbyte_3w(0x8E);	    // control register
-    wbyte_3w(0x00);		// disable write protect
-    wbyte_3w(0x90);	    // trickle charger register
-    wbyte_3w(0x00);	    // everything off!!
-    wbyte_3w(0x81);     // read seconds value
-    t = rbyte_3w();
-    t &= 0x7f;          // mask off clock halt bit
-    wbyte_3w(0x80);	    // and write it back to seconds reg
-    wbyte_3w(t);        // less CH bit
-
-    reset_3w();
-    getConfigRam();
-    t  = clockRam.check0;
-    t ^= clockRam.check1;
-    // if ram bad, initialize everything
-    if (t != 0xff)
-        initColdStart();
 }
 
 // The coldstart initialization table.
@@ -262,14 +245,60 @@ const uint8_t iniTable[] = {
 
 void initColdStart()
 {
-    uint8_t	i, *p;
+    __asm
+    mov     r2,#clockSize+configSize
+    mov     r1,#0
+    mov     r0,#_clockRam
+	mov     dptr,#_iniTable
+L0100:
+    mov     a,r1
+    movc    a,@a+dptr
+    mov     @r0,a
+    inc     r0
+    inc     r1
+    djnz    r2,L0100
+    __endasm;
 
-    p = &clockRam.sec;
-    for (i = 0; i < clockSize+configSize; i++){
-        *p++ = iniTable[i];
-    }
     putClock();
     configBitReg = clockRam.statusBits;
     putConfigRam();
 }
 
+const uint8_t iniDS1302[] = {
+    0x8E,	    // control register
+    0x00,		// disable write protect
+    0x90,	    // trickle charger register
+    0x00,	    // everything off!!
+    0x81        // read seconds value
+};
+
+// --- Power up initization of the DS1302 RTC chip
+// --- initialize time & date from user entries ---
+
+void initRtc()
+{
+    uint8_t	t;
+
+    reset_3w();
+    __asm
+    mov     r2,#5
+    mov     r1,#_iniDS1302
+L110:
+    mov     dpl,@r1
+    lcall   _wbyte_3w
+    inc     r1
+    djnz    r2,L110
+    __endasm;
+    t = rbyte_3w();
+    t &= 0x7f;          // mask off clock halt bit
+    wbyte_3w(0x80);	    // and write it back to seconds reg
+    wbyte_3w(t);        // less CH bit
+
+    reset_3w();
+    getConfigRam();
+    t  = clockRam.check0;
+    t ^= clockRam.check1;
+    // if ram bad, initialize everything
+    if (t != 0xff)
+        initColdStart();
+}
