@@ -11,27 +11,23 @@
 #include "stdio.h"  // used for debug only
 #endif
 
+volatile uint8_t    _3msTimer;          // in timer 0 ticks (max 12.8ms at 50us)
 volatile uint8_t    _10msTimer;         // rolls over every 10ms
 volatile uint8_t    _100msTimer;        // increments, blinks display at 5hz
 volatile uint8_t    _500msTimer;        // increments, blinks ":" seperator at 1hz
 volatile uint8_t    userTimer100;       // user delay in 100ms ticks (25.5 seconds max)
 volatile uint8_t    userTimer3;         // user delay in 3ms ticks 765ms max (3*255)
 
-volatile uint16_t   stateQueueS1;       // holds 16 key states
-volatile uint8_t    stateQS1;           // 8 bit state value (for detecting state changes)
+volatile uint8_t    stateQueueS1;       // holds 5 key states
 volatile __bit      pressedS1;          // true when pressed, user clears
 
-volatile uint16_t   stateQueueS2;       // pressed, released, etc.
-volatile uint8_t    stateQS2;           // 8 bit state value (for detecting state changes)
-volatile uint8_t    stateLS2;           // 8 bit last state
+volatile uint8_t    stateQueueS2;       // pressed, released, etc.
 volatile __bit      pressedS2;          // true when pressed, user clears
 
 volatile uint8_t    keyRepeatTimer;     // sets repeat time (in 10ms ticks)
-volatile uint8_t    keyDebounceTimer;   // in timer 0 ticks (max 12.8ms at 50us)
 
 #if HAS_NY3P_SPEECH
-volatile uint16_t   stateQueueS3;       // holds 16 key states
-volatile uint8_t    stateQS3;           // 8 bit state value (for detecting state changes)
+volatile uint8_t    stateQueueS3;       // holds 5 key states
 volatile __bit      pressedS3;          // true when pressed, user clears
 volatile uint8_t    soundTimer;         // typically set to 10 ticks (500us)
 #endif
@@ -50,7 +46,7 @@ void initTimer0(void)       // 50us @ 22.1184mhz
     EA  = 1;        // global interrupt enable
 }
 
-void timer0_isr() __interrupt 1
+void timer0_isr() __interrupt (1)
 {
     // Here on every timer roll-over (50us).
 
@@ -65,14 +61,14 @@ void timer0_isr() __interrupt 1
     // handle various time based tasks
     // User key press handler, call every 3ms
 
-    if (!keyDebounceTimer--){
-        keyDebounceTimer = 3 * TICKS_MS;
-        debounceSwitches();
+    if (!_3msTimer--){
+        _3msTimer = 3 * TICKS_MS;
         if (userTimer3) userTimer3--;
     }
     if (!_10msTimer--) {
         _10msTimer = 10 * TICKS_MS;
-    if (keyRepeatTimer) keyRepeatTimer--;
+        debounceSwitches();
+        if (keyRepeatTimer) keyRepeatTimer--;
         if (!_100msTimer--) {
             _100msTimer = 10;
             _5hzToggle =! _5hzToggle;
@@ -86,6 +82,7 @@ void timer0_isr() __interrupt 1
   #if HAS_NY3P_SPEECH
     if (soundTimer) soundTimer--;
   #endif
+
 }
 
 // User delay routine
@@ -101,36 +98,27 @@ void delay3(uint8_t ticks)
 
 void debounceSwitches(void)
 {
-    // Update pushbutton state tables every 3ms.
+    // Called from Timer ISR code.
+    // Update pushbutton state tables every 10ms.
     // Uses negative logic (pressed = 0)
-    // State consists of 16 past events and when key is true for 39ms (13*3)
-    // the current state will = F000.
+    // State consists of 5 past events and when key is true for 50ms (5*10)
+    // the current state will = F0.
 
     // sw1
-    stateQueueS1 = stateQueueS1<<1 | S1 | Q_HELD;
-    stateQS1 = state16to8(stateQueueS1);
-    if (stateQS1 == K_PRESSED) pressedS1 = TRUE;
+    stateQueueS1 = stateQueueS1<<1 | S1 | K_HELD;
+    if (stateQueueS1 == K_PRESSED) pressedS1 = TRUE;
 
     // sw2
-    stateQueueS2 = stateQueueS2<<1 | S2 | Q_HELD;
-    stateQS2 = state16to8(stateQueueS2);
-    if (((stateQS2 == K_HELD)&(stateLS2 == K_HELD)&(!keyRepeatTimer))|(stateQS2 == K_PRESSED)){
-        // key down or key repeat occured
-        // in case of repeat, reset state to reload timer
-        stateQS2 = K_PRESSED;
+    stateQueueS2 = stateQueueS2<<1 | S2 | K_HELD;
+    if ((stateQueueS2 == K_HELD) & (!keyRepeatTimer)){
+        keyRepeatTimer = KEY_REPEAT;        // 150ms (1 tick = 10ms)
         pressedS2 = TRUE;
     }
-    if ((stateQS2 == K_HELD) & (stateLS2 != K_HELD))
-        // restart timer when held down last pass and this one
-        keyRepeatTimer = KEY_REPEAT;        // 200ms (1 tick = 10ms)
-    // save last state for timer logic
-    stateLS2 = stateQS2;
 
 #if HAS_NY3P_SPEECH
     // sw3
-    stateQueueS3 = stateQueueS3<<1 | S3 | Q_HELD;
-    stateQS3 = state16to8(stateQueueS3);
-    if (stateQS3 == K_PRESSED) pressedS3 = TRUE;
+    stateQueueS3 = stateQueueS3<<1 | S3 | K_HELD;
+    if (stateQueueS3 == K_PRESSED) pressedS3 = TRUE;
 #endif
 }
 
@@ -140,7 +128,7 @@ void debounceSwitches(void)
 __bit checkForReset()
 {
 
-    if ((stateQS1 == K_HELD) & (stateQS2 == K_HELD))
+    if ((stateQueueS1 == K_HELD) & (stateQueueS2 == K_HELD))
         return TRUE;
     else
         return FALSE;
@@ -152,41 +140,12 @@ __bit checkForRelease()
 {
     pressedS1 = FALSE;
     pressedS2 = FALSE;
-    if ((stateQS1 == K_RELEASED) & (stateQS2 == K_RELEASED))
+    if ((stateQueueS1 == K_RELEASED) & (stateQueueS2 == K_RELEASED))
         return FALSE;   // use neg logic to avoid negation of value
     else
         return TRUE;    // got it?
 }
 
-
-// state16to8 - return 8bit state value from the 16bit state table
-// This makes state comparisions faster and smaller
-//
-uint8_t state16to8(uint16_t queue16)
-{
-    uint8_t que8,rv;
-
-    que8 = queue16 >> 8;
-    if ( que8 == 0xE0 )
-        rv = K_HELD;
-    else if ( que8 == 0xF0 )
-        rv = K_PRESSED;
-    else if ( que8 == 0xFF )
-        rv = K_RELEASED;
-    else
-        rv = K_OTHER;
-    return rv;
-}
-
-uint8_t getStateS1()
-{
-    return state16to8(stateQueueS1);
-}
-
-uint8_t getStateS2()
-{
-    return state16to8(stateQueueS2);
-}
 
 // return the current queue back to caller
 // used for detecting S2 auto-repeat to
@@ -194,7 +153,7 @@ uint8_t getStateS2()
 
 __bit getStateS2Flasher()
 {
-    if ( state16to8(stateQueueS2) == K_HELD )
+    if ( stateQueueS2 == K_HELD )
         return TRUE;
     else
         return _5hzToggle;
