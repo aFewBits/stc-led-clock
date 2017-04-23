@@ -6,7 +6,7 @@
 #define K_PRESSED   0xF0
 #define K_RELEASED  0xFF
 
-#define KEY_REPEAT 25;
+#define KEY_REPEAT 18;
 
 void timer0_isr() __interrupt (1);
 void debounceSwitches();

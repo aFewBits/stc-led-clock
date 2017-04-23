@@ -11,24 +11,23 @@
 #include "stdio.h"  // used for debug only
 #endif
 
+volatile uint8_t    _3msTimer;          // in timer 0 ticks (max 12.8ms at 50us)
 volatile uint8_t    _10msTimer;         // rolls over every 10ms
 volatile uint8_t    _100msTimer;        // increments, blinks display at 5hz
 volatile uint8_t    _500msTimer;        // increments, blinks ":" seperator at 1hz
 volatile uint8_t    userTimer100;       // user delay in 100ms ticks (25.5 seconds max)
 volatile uint8_t    userTimer3;         // user delay in 3ms ticks 765ms max (3*255)
 
-volatile uint8_t    stateQueueS1;       // holds 16 key states
+volatile uint8_t    stateQueueS1;       // holds 5 key states
 volatile __bit      pressedS1;          // true when pressed, user clears
 
 volatile uint8_t    stateQueueS2;       // pressed, released, etc.
-volatile uint8_t    stateLS2;           // 8 bit last state
 volatile __bit      pressedS2;          // true when pressed, user clears
 
 volatile uint8_t    keyRepeatTimer;     // sets repeat time (in 10ms ticks)
-volatile uint8_t    keyDebounceTimer;   // in timer 0 ticks (max 12.8ms at 50us)
 
 #if HAS_NY3P_SPEECH
-volatile uint8_t    stateQueueS3;       // holds 16 key states
+volatile uint8_t    stateQueueS3;       // holds 5 key states
 volatile __bit      pressedS3;          // true when pressed, user clears
 volatile uint8_t    soundTimer;         // typically set to 10 ticks (500us)
 #endif
@@ -62,14 +61,14 @@ void timer0_isr() __interrupt (1)
     // handle various time based tasks
     // User key press handler, call every 3ms
 
-    if (!keyDebounceTimer--){
-        keyDebounceTimer = 3 * TICKS_MS;
+    if (!_3msTimer--){
+        _3msTimer = 3 * TICKS_MS;
         if (userTimer3) userTimer3--;
     }
     if (!_10msTimer--) {
         _10msTimer = 10 * TICKS_MS;
         debounceSwitches();
-    if (keyRepeatTimer) keyRepeatTimer--;
+        if (keyRepeatTimer) keyRepeatTimer--;
         if (!_100msTimer--) {
             _100msTimer = 10;
             _5hzToggle =! _5hzToggle;
@@ -83,6 +82,7 @@ void timer0_isr() __interrupt (1)
   #if HAS_NY3P_SPEECH
     if (soundTimer) soundTimer--;
   #endif
+
 }
 
 // User delay routine
@@ -110,17 +110,10 @@ void debounceSwitches(void)
 
     // sw2
     stateQueueS2 = stateQueueS2<<1 | S2 | K_HELD;
-    if (((stateQueueS2 == K_HELD)&(stateLS2 == K_HELD)&(!keyRepeatTimer))|(stateQueueS2 == K_PRESSED)){
-        // key down or key repeat occured
-        // in case of repeat, reset state to reload timer
-        stateQueueS2 = K_PRESSED;
+    if ((stateQueueS2 == K_HELD) & (!keyRepeatTimer)){
+        keyRepeatTimer = KEY_REPEAT;        // 150ms (1 tick = 10ms)
         pressedS2 = TRUE;
     }
-    if ((stateQueueS2 == K_HELD) & (stateLS2 != K_HELD))
-        // restart timer when held down last pass and this one
-        keyRepeatTimer = KEY_REPEAT;        // 200ms (1 tick = 10ms)
-    // save last state for timer logic
-    stateLS2 = stateQueueS2;
 
 #if HAS_NY3P_SPEECH
     // sw3
