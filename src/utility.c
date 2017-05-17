@@ -132,6 +132,7 @@ void changeTimeFormat(__bit newFormat)
     if ( newFormat != Select_12){
         // else format based on new setting 1=12hr,0=24hr
         if (newFormat){
+            timeChanged = TRUE;     // don't allow clockRefresh() to wipe our change
             Select_12 = TRUE;
             Select_MD = TRUE;
             Select_FC = TRUE;
@@ -141,6 +142,7 @@ void changeTimeFormat(__bit newFormat)
             clockRam.chimeStopHour  = toFormat12(clockRam.chimeStopHour);
         }
         else {
+            timeChanged = TRUE;     // don't allow clockRefresh() to wipe our change
             Select_12 = FALSE;
             Select_MD = FALSE;
             Select_FC = FALSE;

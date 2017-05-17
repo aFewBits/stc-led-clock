@@ -33,7 +33,7 @@ enum Command {
 };
 
 // Time structure as used by DS1302
-// This values are all BCD!
+// These values are BCD!
 
 struct Clock {
     uint8_t sec;            // seconds. Range: {0...59}
