@@ -2,6 +2,8 @@
 #ifndef _UTILITY_H
 #define _UTILITY_H
 
+extern __bit timeChanged;
+
 uint8_t mapLDR(int16_t x);
 uint8_t mapTemp(int16_t x);
 uint8_t map();
