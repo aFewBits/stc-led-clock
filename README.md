@@ -9,7 +9,7 @@ This is a replacement program for the STC 8051 core uP based DIY digital clock k
 ![Image of Banggood id 972289](http://img.banggood.com/thumb/large/2014/xiemeijuan/03/SKU203096/A7.jpg)
 
 ## Getting Started
-You'll need [SDCC](http://sdcc.sf.net) to build and [STC-ISP](http://gxwmcu.com/STCISP/stc-isp-15xx-v6.86.zip) or [STCGAL](https://github.com/grigorig/stcgal) to set the clock speed, processor hardware options and to flash the firmware.
+You'll need [SDCC](http://sdcc.sf.net) to build and [STC-ISP](http://www.stcmcudata.com/STCISP/stc-isp-15xx-v6.86D.zip) or [STCGAL](https://github.com/grigorig/stcgal) to set the clock speed, processor hardware options and to flash the firmware.
 
 In addition to the above tools, you will need one serial port with TTL outputs for programming the STC processor. The simplest solution is usually an inexpensive USB to serial TTL converter. These can be based on the FT232 chipset, PL2303 or CH340. They all work equally well, it's just a matter of what you find at the ready when you need it.
 
