@@ -136,7 +136,7 @@ void checkAlarm()
 
 void checkChime()
 {
-    uint8_t tCurrent,tStart,tStop,t;
+    uint8_t tCurrent,tStart,tStop;
     __bit tFormat;
     tFormat = Select_12;
     changeTimeFormat(FALSE);    // convert to 24 hour (maybe)
@@ -144,15 +144,13 @@ void checkChime()
     tStart = clockRam.chimeStartHour;
     tStop = clockRam.chimeStopHour;
     changeTimeFormat(tFormat);    // convert back to entry state
-    if (tStart > tStop){
-        t = tStart;
-        tStart = tStop;
-        tStop = t;
+    if (tStop >= tStart) {
+        if (tCurrent >= tStart && tCurrent <= tStop)
+            soundChime();
+    } else {
+        if (tCurrent >= tStart || tCurrent <= tStop)
+            soundChime();
     }
-    if ( tCurrent >= tStart )
-        soundChime();
-    else if ( tCurrent <= tStop )
-        soundChime();
 }
 
 // soundChime - Toggle the buzzer on and off at alarm rate only once.
