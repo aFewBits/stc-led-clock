@@ -205,7 +205,12 @@
 #define IO_RD (P5 & 0b00100000)>>5      // read I/O pin
 #define SCLK P3_2                       // P3.2 DS1302 pin 7
 #elif PROC_IS_15F204EA
-// not setup yet
+#define CE_HI  P0 |= 0b00000001;       // P5.4 DS1302 pin 5 set
+#define CE_LO  P0 &= 0b11111110;       //                   unset
+#define IO_LO  P0 &= 0b11111101;       // P5.5 DS1302 pin 6
+#define IO_WR  P0 |= ((W_Byte&0x01)<<1 ) // write I/O pin
+#define IO_RD  (P0 & 0b00000010)>>1      // read I/O pin
+#define SCLK P3_2                       // P3.2 DS1302 pin 7
 #endif
 
 // adc channels for sensors
