@@ -20,16 +20,16 @@
 // Begin Hardware Option configuration
 //---------------------------------------------------------------------------
 
-#define BOARD_TALKING      FALSE
+#define BOARD_TALKING      TRUE
 #define BOARD_BLUE_6       FALSE
 #define BOARD_BLUE_5_RELAY FALSE
 #define BOARD_YELLOW_5     FALSE
-#define BOARD_YELLOW_SMALL TRUE
+#define BOARD_YELLOW_SMALL FALSE
 #define BOARD_WHITE_SMALL  FALSE
 #define BOARD_GREEN_SMALL  FALSE
 
-#define COMMON_ANODE   FALSE
-#define COMMON_CATHODE TRUE
+#define COMMON_ANODE   TRUE
+#define COMMON_CATHODE FALSE
 
 #define PROC_IS_15W408AS TRUE
 #define PROC_IS_15W404AS FALSE
@@ -39,7 +39,7 @@
 #define HAS_THERMISTOR TRUE
 #define HAS_RELAY FALSE
 
-#define DIGIT_3_FLIP FALSE
+#define DIGIT_3_FLIP TRUE
 
 // When setting TEST_DEFAULTS to TRUE,
 // ensure that all display options are TRUE as well

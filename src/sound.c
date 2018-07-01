@@ -3,6 +3,8 @@
 #include "global.h"
 #include "stc15.h"
 #include "display.h"
+#include "utility.h"
+#include "ds1302.h"
 #include "sound.h"
 
 #if HAS_NY3P_SPEECH
