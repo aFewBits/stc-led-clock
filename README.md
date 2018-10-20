@@ -4,6 +4,8 @@
 
 This is a replacement program for the STC 8051 core uP based DIY digital clock kits available from numerous Chinese sources. The specific clock used to develop this firmware was purchased from [Banggood](http://www.banggood.com/DIY-4-Digit-LED-Electronic-Clock-Kit-Temperature-Light-Control-Version-p-972289.html) but was constructed with a code base that should be (easily?) modified with future forks to support most of the four digit clocks that are based on the STC controllers.
 
+21-October-18 Is has been discovered that SDCC verions 3.7 and 3.8 will produce larger code that will result in code size problems for 4K devices. There is also the possibility of buggy pointer operations so I would strongly advise using versions 3.5 or 3.6 which are known to be problem free with this project. Thanks to flohwie for reasearching this issue and making me aware of the changes.
+
 03-April-17 This firmware now supports the "talking clock" sold by Banggood and others that uses the NY3P065 sound chip in both 24 and 12 hour modes. Also supported are the 0.8 inch single LED clocks with both LDR dimming and temperature measurement. Any port/pin combination can be mapped in the header files as well as a single board design supporting both common anode and common cathode displays. I will be adding photographs and detailed modification documents as time and interest permit.
 
 ![Image of Banggood id 972289](http://img.banggood.com/thumb/large/2014/xiemeijuan/03/SKU203096/A7.jpg)
