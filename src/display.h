@@ -136,6 +136,7 @@ void setText2A(uint8_t);
 void setText4(uint8_t);
 void setMsgOn();
 void setMsgOff();
+void setDayOfWeek();
 
 uint8_t incrementHours(uint8_t);
 uint8_t incrementMinutes(uint8_t);

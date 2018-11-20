@@ -459,10 +459,7 @@ void displayFSM()
         break;
 
     case msDayOfWeek:
-        m = clockRam.day;
-        dp1 = OFF;              // hold-over from date display
-        displayHoursOff();
-        displayMinutesFlash();
+        setDayOfWeek();
         stateSwitchWithS1(msExit);
         if (checkAndClearS2())
             clockRam.day = incrementDay(clockRam.day);
@@ -906,16 +903,68 @@ void displayDate()
 }
 
 #if OPT_DAY_DSP
+void setDayOfWeek()
+{
+  #if OPT_DAY_ALPHA
+	if (getStateS2Flasher()){
+		displayDayOfWeek();
+	}
+	else {
+        segs[H10] = BLANK_CHAR;
+        segs[H01] = BLANK_CHAR;
+        segs[M10] = BLANK_CHAR;
+    	segs[M01] = BLANK_CHAR;
+	}
+  #else
+        dp1 = OFF;              // hold-over from date display
+        m = clockRam.day;
+        displayHoursOff();
+        displayMinutesFlash();
+		//displayDayOfWeek();
+  #endif
+}
+#endif
+
+#if OPT_DAY_DSP
+
 void displayDayOfWeek()
 {
     dp1 = OFF;
     dp2 = OFF;
     dp3 = OFF;
-    segs[H10] = 0xFF;
+  #if OPT_DAY_ALPHA
+    h = clockRam.day;               // use hours (unused right now)
+    __asm
+    mov     _CathodeBuf,#0xFF	    ; blank first digit
+    mov     r0,#_CathodeBuf+1	    ; ram destination address
+    mov     r1,_h         		    ; get day of week and make it zero origin
+    dec     r1
+    mov     a,r1
+    add     a,r1
+    add     a,r1                  ; *3 bytes per text entry
+    mov     r1,a
+    mov     r2,#3                 ; number of bytes to move
+    mov     dptr,#_ledDOW         ; source table address
+    jnb     _Select_MD,pLp1
+    inc     dptr                  ; adjust offset for US DOW table
+    inc     dptr                  ; adjust offset for US DOW table
+    inc     dptr                  ; adjust offset for US DOW table
+pLp1:
+    mov     a,r1                  ; offset into code seg source
+    movc    a,@a+dptr             ; get byte in code seg from @(r1+dpr)
+    mov     @r0,a                 ; put byte to ram @r0
+    inc     r0
+    inc     r1
+    djnz    r2,pLp1	              ; loop for r2 bytes
+    __endasm;
+  #else
+    segs[H10] = BLANK_CHAR;
     segs[H01] = 0xBF;
     segs[M10] = ledSegBT[clockRam.day];
     segs[M01] = 0xBF;
+  #endif
 }
+
 #endif
 
 void blankDisplay(void)

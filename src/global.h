@@ -63,8 +63,9 @@
 #define OPT_TEMP_DSP    TRUE
 #define OPT_DATE_DSP    TRUE
 #define OPT_DAY_DSP     TRUE
+#define OPT_DAY_ALPHA	  TRUE	  // display days as characters
 #define OPT_UNITS_GROUP FALSE   // use 12/F/MD or 24/C/DM groups
-#define OPT_BLANK_ZERO  TRUE	// T = 1:00 F = 01:00
+#define OPT_BLANK_ZERO  TRUE	  // T = 1:00 F = 01:00
 
 // Set the default units for the clock
 // Use only one each of these groups of two

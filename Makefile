@@ -15,7 +15,14 @@ build/%.rel: src/%.c src/%.h doall
 main: $(OBJ)
 	$(SDCC) -o build/ src/$@.c $(SDCCOPTS) $^
 	cp build/$@.ihx $@.hex
+	awk -f lastadr.awk main.hex
 
 clean:
 	rm -f *.ihx *.hex *.bin
 	rm -rf build/*
+
+flash:
+	$(STCGAL) -p $(STCGALPORT) -P $(STCGALPROT) -t $(SYSCLK) $(STCGALOPTS) $(FLASHFILE)
+
+led:
+	gawk -f segTable/translate.awk >segTable/output.lst
