@@ -15,13 +15,13 @@
 #define TICKS_MS    20              // This is set by Timer 1 tick rate
 #define MAX_BRIGHT  63              // maximum tick count for brightness
 #define MIN_BRIGHT   1              // minimum tick count for brightness
-
+#define BLANK_CHAR  0xFF
 //---------------------------------------------------------------------------
 // Begin Hardware Option configuration
 //---------------------------------------------------------------------------
 
-#define BOARD_TALKING      TRUE
-#define BOARD_BLUE_6       FALSE
+#define BOARD_TALKING      FALSE
+#define BOARD_BLUE_6       TRUE
 #define BOARD_BLUE_5_RELAY FALSE
 #define BOARD_YELLOW_5     FALSE
 #define BOARD_YELLOW_SMALL FALSE
@@ -31,8 +31,8 @@
 #define COMMON_ANODE   TRUE
 #define COMMON_CATHODE FALSE
 
-#define PROC_IS_15W408AS TRUE
-#define PROC_IS_15W404AS FALSE
+#define PROC_IS_15W408AS FALSE
+#define PROC_IS_15W404AS TRUE
 #define PROC_IS_15F204EA FALSE
 
 #define HAS_LDR TRUE
@@ -63,19 +63,20 @@
 #define OPT_TEMP_DSP    TRUE
 #define OPT_DATE_DSP    TRUE
 #define OPT_DAY_DSP     TRUE
-#define OPT_UNITS_GROUP FALSE    // use 12/F/MD or 24/C/DM groups
+#define OPT_UNITS_GROUP FALSE   // use 12/F/MD or 24/C/DM groups
+#define OPT_BLANK_ZERO  TRUE	// T = 1:00 F = 01:00
 
 // Set the default units for the clock
 // Use only one each of these groups of two
 
-#define SET_12HR_FORMAT TRUE
-#define SET_24HR_FORMAT FALSE
+#define SET_12HR_FORMAT FALSE
+#define SET_24HR_FORMAT TRUE
 
-#define SET_MMDD_FORMAT TRUE
-#define SET_DDMM_FORMAT FALSE
+#define SET_MMDD_FORMAT FALSE
+#define SET_DDMM_FORMAT TRUE
 
-#define SET_DEGF_FORMAT TRUE
-#define SET_DEGC_FORMAT FALSE
+#define SET_DEGF_FORMAT FALSE
+#define SET_DEGC_FORMAT TRUE
 
 //---------------------------------------------------------------------------
 // End Software Option configuration

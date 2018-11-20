@@ -36,6 +36,9 @@ __bit   dp2,dp3;                // numbers match Cathode[] array index
 __bit   AM_PM;                  // used to set decimal point on/off
 __bit   readyRead;              // used to read temperature once per second
 __bit   timeChanged;            // write time to clock when set
+#if OPT_BLANK_ZERO
+__bit   blankZero;              // set true to suppress leading zero in clock
+#endif
 
 uint8_t maskOnOff;              // set to 0x7F or 0xFF to blink decimal point
 uint8_t maskDp0;                // set to 0x7F or 0xFF with dp0 (=dp on or off)
@@ -109,7 +112,13 @@ void updateClock()
     getClock();
     setupHour(clockRam.hr);     // possibly convert to 12 format with AM/PM
     m = clockRam.min;
+#if OPT_BLANK_ZERO
+ blankZero = TRUE;
     displayHoursOn();
+ blankZero = FALSE;
+#else
+    displayHoursOn();
+#endif
     displayMinutesOn();
 }
 
@@ -191,7 +200,7 @@ void displayFSM()
         if ( !userTimer100 ) displayState = stClock;
         break;
 
-#if OPT_TEMP_DSP  
+#if OPT_TEMP_DSP
     case stOptTemp:
         displayTemperature();
         stateSwitchWithS1(scSet);
@@ -1042,35 +1051,41 @@ _displayHoursFlash:
 L001:
     mov     a,#0xFF
     addc    a,#0
-	mov     _maskOnOff,a        ; =0 when cy set, =ff when not
+    mov     _maskOnOff,a        ; =0 when cy set, =ff when not
 
-    mov     a,#0xFF
+    mov     a,#BLANK_CHAR
     mov     c,_dp0
     cpl     c                   ; 0x7f = turn it on
     rrc     a                   ; 0xFF = turn it off
-	mov     _maskDp0,a
+    mov     _maskDp0,a
 
-    mov     a,#0xFF
+    mov     a,#BLANK_CHAR
     mov     c,_dp1
     cpl     c
     rrc     a
-	mov     _maskDp1,a
+    mov     _maskDp1,a
 
-	mov	    a,_h                ; get hours
-	swap	a                   ; cheap way to shift right 4 places
-	anl     a,#0x0f
-	mov     dptr,#_ledSegTB
-	movc	a,@a+dptr
-	orl 	a,_maskOnOff
-	anl 	a,_maskDp0
-	mov 	_CathodeBuf,a
+    mov     dptr,#_ledSegTB
+    mov     a,_h                ; get hours
+    swap    a                   ; cheap way to shift right 4 places
+    anl     a,#0x0f
+    jnb     _blankZero,L0011    ; not blanking, leave
+    jnz     L0011               ; blanking but not zero, leave
+    mov     a,#0xFF             ; A was 0 on entry
+    sjmp    L0012               ; write FF to display to blank digit
+L0011:
+    movc    a,@a+dptr
+    orl     a,_maskOnOff
+    anl     a,_maskDp0
+L0012:
+    mov     _CathodeBuf,a
 
-	mov     a,#0x0f
-	anl     a,_h
-	movc	a,@a+dptr
-	orl     a,_maskOnOff
-	anl     a,_maskDp1
-	mov     (_CathodeBuf + 1),a
+    mov     a,#0x0f
+    anl     a,_h
+    movc	a,@a+dptr
+    orl     a,_maskOnOff
+    anl     a,_maskDp1
+    mov     (_CathodeBuf + 1),a
     __endasm;
 }
 
