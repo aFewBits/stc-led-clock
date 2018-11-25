@@ -1,0 +1,66 @@
+#
+# String table for ease of localization and general modification
+#
+# Comment lines begin with the hash (#) character
+#
+# Strings used for replacement of the entries in the "codeTemplate.txt" file
+#
+# Special characters used in text are underscore (_), decimal point (.) and comma (,)
+#
+# The underscore (_) will force the generation of a byte (0xff) that will display
+# a blank character position. These fillers are required for table alignment.
+#
+# A decimal (.) is used to display the decimal on the LED. The decimal will
+# be display with the character that preceeds the (.) in the source text below
+#
+# The comma (,) is used for the 1 inch LED display clocks that have the rotated
+# LED in the third digit position. These clocks need the segments rotated
+# 180 degrees to display properly. This should have been done in hardware
+# but wasn't as it complicates the software. Lazy engineers.
+# The comma associates with the character that preceeds it, like the decimal
+#
+# Strings can have only one decimal and one comma escape character per entry
+#
+# Two byte strings table
+
+    <21>  CL
+    <22>  AL
+    <23>  CH
+    <24>  dA
+    <25>  dy
+    <26>  tP
+    <27>  U,S
+    <28>  E,U
+    <29>  1,2
+    <210> 2,4
+    <211> _F
+    <212> _C
+    <213> o,f
+    <214> o,n
+
+# three byte strings, alpha days of the week
+
+  	<31> Su,n
+  	<32> Mo,n
+  	<33> Tu,e
+  	<34> We,d
+  	<35> Th,u
+  	<36> Fr,i
+  	<37> Sa,t
+  	<38> Su,n
+
+# four byte strings
+
+    <41>  SEt,_
+    <42>  bEE,P
+    <43>  dSP,_
+    <44>  CFg,_
+    <45>  Uni,t
+    <46>  12.2,4
+    <47>  12.3,1
+    <48>  31.1,2
+    <49>  brt,_
+    <410> CAL,_
+    <411> DAt,E
+    <412> TEM,P
+

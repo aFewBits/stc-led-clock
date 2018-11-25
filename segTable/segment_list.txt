@@ -1,0 +1,109 @@
+#
+# segment_list.txt
+#
+# for easy LED segment table generation
+#
+# First field is the hex entry to be generated
+#
+# Second field is a list of the segments to be illuminted for this character
+#   These must be one of the letters "a b c d e f g h" in LOWER case
+#   The string of letters must not contain spaces or any other character
+#
+# Third field is a comment and is the actual ascii character
+#
+0x20              ; sp
+0x21              ; !
+0x22              ; "
+0x23              ; #
+0x24              ; $
+0x25              ; %
+0x26              ; &
+0x27              ; `
+0x28              ; (
+0x29              ; )
+0x2A              ; *
+0x2B              ; +
+0x2C              ; '
+0x2D    g         ; -
+0x2E              ; .
+0x2F              ; /
+0x30    abcdef    ; 0
+0x31    bc        ; 1
+0x32    abdeg     ; 2
+0x33    abcdg     ; 3
+0x34    bcfg      ; 4
+0x35    acdfg     ; 5
+0x36    acdefg    ; 6
+0x37    abc       ; 7
+0x38    abcdefg   ; 8
+0x39    abcdfg    ; 9
+0x3A              ; :
+0x3B              ; ;
+0x3C              ; <
+0x3D              ; =
+0x3E              ; >
+0x3F              ; ?
+0x40              ; @
+0x41    abcefg    ; A
+0x42    cdefg     ; B
+0x43    adef      ; C
+0x44    bcdeg     ; D
+0x45    adefg     ; E
+0x46    aefg      ; F
+0x47    acdefg    ; G
+0x48    bcefg     ; H
+0x49    bc        ; I
+0x4A    bcde      ; J
+0x4B    acefg     ; K
+0x4C    def       ; L
+0x4D    bcef      ; M
+0x4E    abcdf     ; N
+0x4F    abcdef    ; O
+0X50    abefg     ; P
+0x51    abcfg     ; Q
+0x52    ef        ; R
+0x53    acdfg     ; S
+0x54    defg      ; T
+0x55    bcdef     ; U
+0x56    bcdef     ; V
+0x57    bcdefg    ; W
+0x58    adg       ; X
+0x59    bcdfg     ; Y
+0x5A    abeg      ; Z
+0x5B              ; [
+0x5C              ; \
+0x5D              ; ]
+0x5E              ; ^
+0x5F              ; _
+0X60              ; `
+0x61    abcdeg    ; a
+0x62    cdefg     ; b
+0x63    deg       ; c
+0x64    bcdeg     ; d
+0x65    abdefg    ; e
+0x66    aefg      ; f
+0x67    abcdfg    ; g
+0x68    cefg      ; h
+0x69    c         ; i
+0x6A    bcde      ; j
+0x6B    acefg     ; k
+0x6C    def       ; l
+0x6D    befg      ; m
+0x6E    ceg       ; n
+0x6F    cdeg      ; o
+0X70    abefg     ; p
+0x71    abcfg     ; q
+0x72    eg        ; r
+0x73    acdfg     ; s
+0x74    defg      ; t
+0x75    cde       ; u
+0x76    bcdef     ; v
+0x77    bcdefg    ; w
+0x78    bcefg     ; x
+0x79    bcdfg     ; y
+0x7A    abeg      ; z
+0x7B              ; {
+0x7C              ; |
+0x7D              ; }
+0x7E              ; ~
+0x7F              ; del

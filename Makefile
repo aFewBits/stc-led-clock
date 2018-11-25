@@ -25,4 +25,5 @@ flash:
 	$(STCGAL) -p $(STCGALPORT) -P $(STCGALPROT) -t $(SYSCLK) $(STCGALOPTS) $(FLASHFILE)
 
 led:
-	gawk -f segTable/translate.awk >segTable/output.lst
+	gawk -f segTable/generate_all.awk >src/codeTables.c
+

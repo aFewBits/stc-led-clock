@@ -1,0 +1,159 @@
+
+const uint8_t textDesc2[]= {
+#if DIGIT_3_FLIP
+    <2F1>  // CL txClock
+    <2F2>  // AL txAlarm
+    <2F3>  // CH txChime
+  #if OPT_DATE_DSP
+    <2F4>  // dA txDate
+  #endif
+  #if OPT_DAY_DSP
+    <2F5>  // dy txDay
+  #endif
+  #if OPT_TEMP_DSP
+    <2F6>  // tP txTemp
+  #endif
+    #if OPT_UNITS_GROUP
+        <2F7>  // US
+        <2F8>  // EU
+    #else
+        <2F9>   // 12
+        <2F10>  // 24
+        <2F11>  // _F
+        <2F12>  // _C
+    #endif
+    <2F13>  // of
+    <2F14>  // on
+#else
+    <2N1>  // CL txClock
+    <2N2>  // AL txAlarm
+    <2N3>  // CH txChime
+  #if OPT_DATE_DSP
+    <2N4>  // dA txDate
+  #endif
+  #if OPT_DAY_DSP
+    <2N5>  // dy txDay
+  #endif
+  #if OPT_TEMP_DSP
+    <2N6>  // tP txTemp
+  #endif
+    #if OPT_UNITS_GROUP
+        <2N7>  // US
+        <2N8>  // EU
+    #else
+        <2N9> // 12
+        <2N10>  // 24
+        <2N11>  // F
+        <2N12>  // C
+    #endif
+    <2N13>  // of
+    <2N14>  // on
+#endif
+};
+
+const uint8_t textDesc4[]= {
+#if DIGIT_3_FLIP
+    <4F1>       // SEt_
+    <4F2>       // bEEP
+    <4F3>       // dSP_
+    <4F4>       // CFg_
+    #if OPT_UNITS_GROUP
+        <4F5>   // Unit
+    #else
+        <4F6>   // 12.24
+        <4F7>   // 12.31
+        <4F8>   // 31.12
+    #endif
+    <4F9>       // brt
+    <4F10>       // CAL
+    <4F11>       // DAtE
+    <4F12>       // TEMP
+#else
+    <4N1>       // SEt
+    <4N2>       // bEEP
+    <4N3>       // dSP
+    <4N4>       // CFg
+    #if OPT_UNITS_GROUP
+        <4N5>   // Unit
+    #else
+        <4N6>   // 12.24
+        <4N7>   // 12.31
+        <4N8>   // 31.12
+    #endif
+    <4N9>       // brt
+    <4N10>       // CAL
+    <4N11>       // DAtE
+    <4N12>       // TEMP
+#endif
+};
+
+#if OPT_DAY_ALPHA
+  const uint8_t ledDOW[]  = {
+  #if DIGIT_3_FLIP
+  	<3F1>	// _Sun
+  	<3F2>	// _Mon
+  	<3F3>	// _TUE
+  	<3F4>	// _Wed
+  	<3F5>	// _Thu
+  	<3F6>	// _Fri
+  	<3F7>	// _Sat
+  	<3F8>	// _Sun
+  #else
+  	<3N1>	// _Sun
+  	<3N2>	// _Mon
+  	<3N3>	// _TUE
+  	<3N4>	// _Wed
+  	<3N5>	// _Thu
+  	<3N6>	// _Fri
+  	<3N7>	// _Sat
+  	<3N8>	// _Sun
+  #endif
+};
+#endif
+
+const uint8_t ledSegTB[]  = {
+    <1N0> // '0'
+    <1N1> // '1'
+    <1N2> // '2'
+    <1N3> // '3'
+    <1N4> // '4'
+    <1N5> // '5'
+    <1N6> // '6'
+    <1N7> // '7'
+    <1N8> // '8'
+    <1N9> // '9'
+};
+
+// Same digit pattern but for the up-side-down LED...
+// This is for the special case where the usual HH:MM
+// display has the --:X- LED installed with the decimal
+// at the top to form the colon without a real clock LED
+// This is "anode 2" in the clocks with 1 inch LED's.
+//
+// BT = Bottom to Top
+//
+const uint8_t ledSegBT[] ={
+#if DIGIT_3_FLIP
+    <1F0> // '0'
+    <1F1> // '1'
+    <1F2> // '2'
+    <1F3> // '3'
+    <1F4> // '4'
+    <1F5> // '5'
+    <1F6> // '6'
+    <1F7> // '7'
+    <1F8> // '8'
+    <1F9> // '9'
+#else
+    <1N0> // '0'
+    <1N1> // '1'
+    <1N2> // '2'
+    <1N3> // '3'
+    <1N4> // '4'
+    <1N5> // '5'
+    <1N6> // '6'
+    <1N7> // '7'
+    <1N8> // '8'
+    <1N9> // '9'
+#endif
+};

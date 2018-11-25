@@ -221,7 +221,7 @@ void stateSwitchExtendedWithS1(uint8_t newState, uint8_t text2, __bit flag)
         if (!flag)
             displayState--;
         if ( text2 != NoText2 )
-            setText2(text2);
+            setHourDigits(text2);
     }
 }
 
@@ -244,6 +244,6 @@ void stateSwitchExtendedWithS2(uint8_t newState, uint8_t text2, __bit flag)
         if (!flag)
             displayState--;
         if ( text2 != NoText2 )
-            setText2(text2);
+            setHourDigits(text2);
     }
 }
