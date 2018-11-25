@@ -4,7 +4,10 @@
 # - input two seperate data files and output transliterated characters
 #
 # file1 format is "hexnum chars" where hexnum = hex entry index, char = "on" led segmemts
-# file2 consists a stream of "abcdefgh" char lists
+# file2 consists a index and a text string
+# file3 is a template file for the output of the text strings after translation
+#  into an LED segment pattern.
+#  This output is then included in the source stream for complilation
 #
 # file1 converts raw led segment letters to a translated hex number
 # which is stored in an array with the characters hex number being the index
@@ -16,14 +19,42 @@
 #   ... repeats for 127 chars total
 #
 # file2:
-#   CL
-#   AL
-#   BEEP
 #
-# output:
-#   CL      0x31,0x4A   // CL
-#   AL      0x37,0x48   // AL
-#   BEEP    0x6A,0x88,0x9F,0x4C // BEEP
+#    <41>  SEt,_
+#    <42>  bEE,P
+#
+# Where <41> is the pattern used for matching in the output template file.
+#
+# file3:
+#
+#  #if DIGIT_3_FLIP
+#      <4F1>
+#      <4F2>
+#
+# This template has <4F1> replaced with the hex code for string <41> with the character rotated
+# (flipped) 180 degrees. In other locations, you will see the index markers:
+#
+#  #else
+#      <4N1>
+#      <4N2>
+#
+# Where the "N" character in the marker means do not flip or rotate the character pattern
+# This is only needed in the third digit position due to lazy hardware engineers.
+#
+# The output from this GAW program thus becomes:
+#
+#  #if DIGIT_3_FLIP
+#      0x92,0x86,0xB8,0xFF,       // SEt_
+#      0x83,0x86,0xB0,0x8C,       // bEEP
+#
+# and lower in the listing:
+#
+#  #else
+#      0x92,0x86,0x87,0xFF,       // SEt
+#      0x83,0x86,0x86,0x8C,       // bEEP
+#
+# Note the difference in the value of the third hex number, this is
+# the "flipped" LED segment pattern
 #
 BEGIN {
 
