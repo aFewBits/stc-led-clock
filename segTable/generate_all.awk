@@ -1,13 +1,12 @@
 #
 # generate_all
 #
-# - input two seperate data files and output transliterated characters
+# Read three input data files and output LED segment patterns in code form that
+#  is included in the source stream for compliation
 #
 # file1 format is "hexnum chars" where hexnum = hex entry index, char = "on" led segmemts
 # file2 consists a index and a text string
-# file3 is a template file for the output of the text strings after translation
-#  into an LED segment pattern.
-#  This output is then included in the source stream for complilation
+# file3 is a template file for the output of the text strings
 #
 # file1 converts raw led segment letters to a translated hex number
 # which is stored in an array with the characters hex number being the index
@@ -24,6 +23,8 @@
 #    <42>  bEE,P
 #
 # Where <41> is the pattern used for matching in the output template file.
+#  See the comments in the file "text_strings.txt" for explaination of the
+#   special codes used to generate different character attributes
 #
 # file3:
 #
@@ -31,7 +32,7 @@
 #      <4F1>
 #      <4F2>
 #
-# This template has <4F1> replaced with the hex code for string <41> with the character rotated
+# The template file has <4F1> replaced with the hex code for string <41> with the character rotated
 # (flipped) 180 degrees. In other locations, you will see the index markers:
 #
 #  #else
