@@ -85,7 +85,7 @@ void displayUpdateISR(void){
         if (++aPos >= 4)            // Done with this digit so move to next
             aPos = 0;               // and reset timers so next time in turn on new anode
             aOnTicks = brightLevel;
-            if (aOnTicks == MAX_BRIGHT)
+            if (aOnTicks >= MAX_BRIGHT)
                aOffTicks = 1;      // don't allow Off to goto zero!!
             else
                aOffTicks = MAX_BRIGHT - aOnTicks;
