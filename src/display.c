@@ -137,7 +137,7 @@ void displayFSM()
     brightLevel = mapLDR(MIN_BRIGHT);   // not max since anlog is inverted
   #endif
 
-  #if HAS_LDR
+  #if HAS_THERMISTOR
     if ( readyRead & _1hzToggle ){
         actualTemp = mapTemp(getADCResult(ADC_TEMP));
         readyRead = FALSE;
