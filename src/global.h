@@ -256,7 +256,7 @@
 #if PROC_IS_15W408AS || PROC_IS_15W404AS
 #define CE_HI   P5 |= 0b00010000;       // P5.4 DS1302 pin 5 set
 #define CE_LO   P5 &= 0b11101111;       //                   unset
-#define IO_LO   P5 &= 0b11011111;       // P5.1 DS1302 pin 6
+#define IO_LO   P5 &= 0b11011111;       // P5.5 DS1302 pin 6
 #define IO_WR  P5|=((W_Byte&0x01)<<5)   // write I/O pin
 #define IO_RD (P5 & 0b00100000)>>5      // read I/O pin
 #define SCLK P3_2                       // P3.2 DS1302 pin 7
